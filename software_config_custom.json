@@ -1,0 +1,515 @@
+{
+  "base_directories": {
+    "downloads": "C:\\Users\\%USERNAME%\\Downloads\\SoftwareInstaller",
+    "installers": "C:\\Users\\%USERNAME%\\Downloads\\SoftwareInstaller\\Installers",
+    "temp": "C:\\Users\\%USERNAME%\\AppData\\Local\\Temp\\SoftwareInstaller",
+    "logs": "C:\\Users\\%USERNAME%\\Documents\\SoftwareInstaller\\Logs",
+    "utils": "D:\\Utils"
+  },
+  "software_list": [
+    {
+      "name": "Mozilla Firefox",
+      "method": "winget",
+      "package_id": "Mozilla.Firefox",
+      "category": "Navigateur",
+      "description": "Navigateur web open source",
+      "base_directory": "D:\\Utils\\Mozilla Firefox",
+      "installer": {
+        "type": "winget",
+        "silent_args": ["--accept-package-agreements", "--accept-source-agreements", "--silent"]
+      }
+    },
+    {
+      "name": "Mozilla Thunderbird",
+      "method": "winget",
+      "package_id": "Mozilla.Thunderbird",
+      "category": "Communication",
+      "description": "Client de messagerie électronique",
+      "base_directory": "D:\\Utils\\Mozilla Thunderbird",
+      "installer": {
+        "type": "winget",
+        "silent_args": ["--accept-package-agreements", "--accept-source-agreements", "--silent"]
+      }
+    },
+    {
+      "name": "Ferdium",
+      "method": "winget",
+      "package_id": "Ferdi.Ferdi",
+      "category": "Communication",
+      "description": "Client de messagerie et réseaux sociaux",
+      "base_directory": "D:\\Utils\\Ferdium",
+      "installer": {
+        "type": "winget",
+        "silent_args": ["--accept-package-agreements", "--accept-source-agreements", "--silent"]
+      }
+    },
+    {
+      "name": "VLC Media Player",
+      "method": "winget",
+      "package_id": "VideoLAN.VLC",
+      "category": "Multimédia",
+      "description": "Lecteur multimédia universel",
+      "base_directory": "D:\\Utils\\VLC Media Player",
+      "installer": {
+        "type": "winget",
+        "silent_args": ["--accept-package-agreements", "--accept-source-agreements", "--silent"]
+      }
+    },
+    {
+      "name": "iTunes",
+      "method": "winget",
+      "package_id": "Apple.iTunes",
+      "category": "Multimédia",
+      "description": "Lecteur multimédia et gestionnaire de médias Apple",
+      "base_directory": "D:\\Utils\\iTunes",
+      "installer": {
+        "type": "winget",
+        "silent_args": ["--accept-package-agreements", "--accept-source-agreements", "--silent"]
+      }
+    },
+    {
+      "name": "Steam",
+      "method": "winget",
+      "package_id": "Valve.Steam",
+      "category": "Jeux",
+      "description": "Plateforme de jeux Steam",
+      "base_directory": "D:\\Utils\\Steam",
+      "installer": {
+        "type": "winget",
+        "silent_args": ["--accept-package-agreements", "--accept-source-agreements", "--silent"]
+      }
+    },
+    {
+      "name": "GOG Galaxy",
+      "method": "winget",
+      "package_id": "GOG.Galaxy",
+      "category": "Jeux",
+      "description": "Launcher GOG Galaxy",
+      "base_directory": "D:\\Utils\\GOG Galaxy",
+      "installer": {
+        "type": "winget",
+        "silent_args": ["--accept-package-agreements", "--accept-source-agreements", "--silent"]
+      }
+    },
+    {
+      "name": "Epic Games Store",
+      "method": "winget",
+      "package_id": "EpicGames.EpicGamesLauncher",
+      "category": "Jeux",
+      "description": "Launcher Epic Games",
+      "base_directory": "D:\\Utils\\Epic Games",
+      "installer": {
+        "type": "winget",
+        "silent_args": ["--accept-package-agreements", "--accept-source-agreements", "--silent"]
+      }
+    },
+    {
+      "name": "Battle.net",
+      "method": "winget",
+      "package_id": "Blizzard.BattleNet",
+      "category": "Jeux",
+      "description": "Launcher Blizzard Battle.net",
+      "base_directory": "D:\\Utils\\Battle.net",
+      "installer": {
+        "type": "winget",
+        "silent_args": ["--accept-package-agreements", "--accept-source-agreements", "--silent"]
+      }
+    },
+    {
+      "name": "Guild Wars",
+      "method": "custom",
+      "category": "Jeux",
+      "description": "Guild Wars - Installation manuelle requise",
+      "base_directory": "D:\\Utils\\Guild Wars",
+      "installer": {
+        "type": "custom",
+        "pre_install_commands": [
+          "echo Guild Wars nécessite une installation manuelle",
+          "echo Veuillez télécharger le jeu depuis le site officiel"
+        ],
+        "post_install_commands": [
+          "echo Installation manuelle de Guild Wars requise"
+        ]
+      }
+    },
+    {
+      "name": "Guild Wars 2",
+      "method": "custom",
+      "category": "Jeux",
+      "description": "Guild Wars 2 - Installation manuelle requise",
+      "base_directory": "D:\\Utils\\Guild Wars 2",
+      "installer": {
+        "type": "custom",
+        "pre_install_commands": [
+          "echo Guild Wars 2 nécessite une installation manuelle",
+          "echo Veuillez télécharger le jeu depuis le site officiel"
+        ],
+        "post_install_commands": [
+          "echo Installation manuelle de Guild Wars 2 requise"
+        ]
+      }
+    },
+    {
+      "name": "Fotor",
+      "method": "winget",
+      "package_id": "Fotor.Fotor",
+      "category": "Graphisme",
+      "description": "Éditeur de photos en ligne",
+      "base_directory": "D:\\Utils\\Fotor",
+      "installer": {
+        "type": "winget",
+        "silent_args": ["--accept-package-agreements", "--accept-source-agreements", "--silent"]
+      }
+    },
+    {
+      "name": "Notepad++",
+      "method": "winget",
+      "package_id": "Notepad++.Notepad++",
+      "category": "Développement",
+      "description": "Éditeur de texte avancé",
+      "base_directory": "D:\\Utils\\Notepad++",
+      "installer": {
+        "type": "winget",
+        "silent_args": ["--accept-package-agreements", "--accept-source-agreements", "--silent"]
+      }
+    },
+    {
+      "name": "Qt 6",
+      "method": "winget",
+      "package_id": "Qt.Qt",
+      "category": "Développement",
+      "description": "Framework de développement Qt 6",
+      "base_directory": "D:\\Utils\\Qt",
+      "installer": {
+        "type": "winget",
+        "silent_args": ["--accept-package-agreements", "--accept-source-agreements", "--silent"]
+      }
+    },
+    {
+      "name": "Python 3",
+      "method": "winget",
+      "package_id": "Python.Python.3.11",
+      "category": "Développement",
+      "description": "Langage de programmation Python",
+      "base_directory": "D:\\Utils\\Python",
+      "installer": {
+        "type": "winget",
+        "silent_args": ["--accept-package-agreements", "--accept-source-agreements", "--silent"]
+      }
+    },
+    {
+      "name": "Git",
+      "method": "winget",
+      "package_id": "Git.Git",
+      "category": "Développement",
+      "description": "Système de contrôle de version distribué",
+      "base_directory": "D:\\Utils\\Git",
+      "installer": {
+        "type": "winget",
+        "silent_args": ["--accept-package-agreements", "--accept-source-agreements", "--silent"]
+      }
+    },
+    {
+      "name": "GitKraken",
+      "method": "winget",
+      "package_id": "Axosoft.GitKraken",
+      "category": "Développement",
+      "description": "Client Git graphique et intuitif",
+      "base_directory": "D:\\Utils\\GitKraken",
+      "installer": {
+        "type": "winget",
+        "silent_args": ["--accept-package-agreements", "--accept-source-agreements", "--silent"]
+      }
+    },
+    {
+      "name": "Microsoft Office",
+      "method": "winget",
+      "package_id": "Microsoft.Office",
+      "category": "Productivité",
+      "description": "Suite bureautique Microsoft Office",
+      "base_directory": "D:\\Utils\\Microsoft Office",
+      "installer": {
+        "type": "winget",
+        "silent_args": ["--accept-package-agreements", "--accept-source-agreements", "--silent"]
+      }
+    },
+    {
+      "name": "LaTeX (MiKTeX)",
+      "method": "winget",
+      "package_id": "MiKTeX.MiKTeX",
+      "category": "Développement",
+      "description": "Distribution LaTeX complète",
+      "base_directory": "D:\\Utils\\MiKTeX",
+      "installer": {
+        "type": "winget",
+        "silent_args": ["--accept-package-agreements", "--accept-source-agreements", "--silent"]
+      }
+    },
+    {
+      "name": "TeXmaker",
+      "method": "winget",
+      "package_id": "TeXstudio.TeXstudio",
+      "category": "Développement",
+      "description": "Éditeur LaTeX (TeXstudio comme alternative à TeXmaker)",
+      "base_directory": "D:\\Utils\\TeXstudio",
+      "installer": {
+        "type": "winget",
+        "silent_args": ["--accept-package-agreements", "--accept-source-agreements", "--silent"]
+      }
+    },
+    {
+      "name": "Plitch",
+      "method": "custom",
+      "category": "Jeux",
+      "description": "Plateforme de mods pour jeux - Installation manuelle requise",
+      "base_directory": "D:\\Utils\\Plitch",
+      "installer": {
+        "type": "custom",
+        "download_url": "https://www.plitch.com/download",
+        "filename": "plitch_installer.exe",
+        "silent_args": ["/S"],
+        "pre_install_commands": [
+          "echo Téléchargement de Plitch...",
+          "echo Installation manuelle recommandée"
+        ],
+        "post_install_commands": [
+          "echo Plitch installé - Configuration manuelle requise"
+        ]
+      }
+    },
+    {
+      "name": "DBeaver",
+      "method": "winget",
+      "package_id": "DBeaverCorp.DBeaverCommunity",
+      "category": "Développement",
+      "description": "Client de base de données universel",
+      "base_directory": "D:\\Utils\\DBeaver",
+      "installer": {
+        "type": "winget",
+        "silent_args": ["--accept-package-agreements", "--accept-source-agreements", "--silent"]
+      }
+    },
+    {
+      "name": "Sumatra PDF",
+      "method": "winget",
+      "package_id": "SumatraPDF.SumatraPDF",
+      "category": "Productivité",
+      "description": "Lecteur PDF léger et rapide",
+      "base_directory": "D:\\Utils\\SumatraPDF",
+      "installer": {
+        "type": "winget",
+        "silent_args": ["--accept-package-agreements", "--accept-source-agreements", "--silent"]
+      }
+    },
+    {
+      "name": "LD Player",
+      "method": "winget",
+      "package_id": "Xuanzhi.LDPlayer",
+      "category": "Utilitaires",
+      "description": "Émulateur Android",
+      "base_directory": "D:\\Utils\\LD Player",
+      "installer": {
+        "type": "winget",
+        "silent_args": ["--accept-package-agreements", "--accept-source-agreements", "--silent"]
+      }
+    },
+    {
+      "name": "NordPass",
+      "method": "winget",
+      "package_id": "NordVPN.NordPass",
+      "category": "Sécurité",
+      "description": "Gestionnaire de mots de passe",
+      "base_directory": "D:\\Utils\\NordPass",
+      "installer": {
+        "type": "winget",
+        "silent_args": ["--accept-package-agreements", "--accept-source-agreements", "--silent"]
+      }
+    },
+    {
+      "name": "Facebook",
+      "method": "custom",
+      "category": "Communication",
+      "description": "Application Facebook - Installation via Microsoft Store",
+      "base_directory": "D:\\Utils\\Microsoft Store Apps",
+      "installer": {
+        "type": "custom",
+        "pre_install_commands": [
+          "echo Installation de Facebook via Microsoft Store...",
+          "winget install 9WZDNCRFJBBH"
+        ],
+        "post_install_commands": [
+          "echo Facebook installé via Microsoft Store"
+        ]
+      }
+    },
+    {
+      "name": "Instagram",
+      "method": "custom",
+      "category": "Communication",
+      "description": "Application Instagram - Installation via Microsoft Store",
+      "base_directory": "D:\\Utils\\Microsoft Store Apps",
+      "installer": {
+        "type": "custom",
+        "pre_install_commands": [
+          "echo Installation d'Instagram via Microsoft Store...",
+          "winget install 9NBLGGH5L9X9"
+        ],
+        "post_install_commands": [
+          "echo Instagram installé via Microsoft Store"
+        ]
+      }
+    },
+    {
+      "name": "Discord",
+      "method": "winget",
+      "package_id": "Discord.Discord",
+      "category": "Communication",
+      "description": "Plateforme de communication",
+      "base_directory": "D:\\Utils\\Discord",
+      "installer": {
+        "type": "winget",
+        "silent_args": ["--accept-package-agreements", "--accept-source-agreements", "--silent"]
+      }
+    },
+    {
+      "name": "MuseScore",
+      "method": "winget",
+      "package_id": "MuseScore.MuseScore",
+      "category": "Multimédia",
+      "description": "Éditeur de partition musicale",
+      "base_directory": "D:\\Utils\\MuseScore",
+      "installer": {
+        "type": "winget",
+        "silent_args": ["--accept-package-agreements", "--accept-source-agreements", "--silent"]
+      }
+    },
+    {
+      "name": "Roccat Swarm",
+      "method": "custom",
+      "category": "Utilitaires",
+      "description": "Logiciel de configuration Roccat - Installation manuelle requise",
+      "base_directory": "D:\\Utils\\Roccat Swarm",
+      "installer": {
+        "type": "custom",
+        "download_url": "https://www.roccat.com/fr-fr/support/downloads/",
+        "filename": "roccat_swarm_installer.exe",
+        "silent_args": ["/S"],
+        "pre_install_commands": [
+          "echo Téléchargement de Roccat Swarm...",
+          "echo Installation manuelle recommandée"
+        ],
+        "post_install_commands": [
+          "echo Roccat Swarm installé - Configuration manuelle requise"
+        ]
+      }
+    },
+    {
+      "name": "Turtle Beach Swarm II",
+      "method": "custom",
+      "category": "Utilitaires",
+      "description": "Logiciel de configuration Turtle Beach - Installation manuelle requise",
+      "base_directory": "D:\\Utils\\Turtle Beach Swarm II",
+      "installer": {
+        "type": "custom",
+        "download_url": "https://www.turtlebeach.com/support/downloads/",
+        "filename": "turtle_beach_swarm_ii_installer.exe",
+        "silent_args": ["/S"],
+        "pre_install_commands": [
+          "echo Téléchargement de Turtle Beach Swarm II...",
+          "echo Installation manuelle recommandée"
+        ],
+        "post_install_commands": [
+          "echo Turtle Beach Swarm II installé - Configuration manuelle requise"
+        ]
+      }
+    },
+    {
+      "name": "QSync",
+      "method": "custom",
+      "category": "Utilitaires",
+      "description": "Logiciel de synchronisation QNAP - Installation manuelle requise",
+      "base_directory": "D:\\Utils\\QSync",
+      "installer": {
+        "type": "custom",
+        "download_url": "https://www.qnap.com/fr-fr/utilities/essentials/qsync",
+        "filename": "qsync_installer.exe",
+        "silent_args": ["/S"],
+        "pre_install_commands": [
+          "echo Téléchargement de QSync...",
+          "echo Installation manuelle recommandée"
+        ],
+        "post_install_commands": [
+          "echo QSync installé - Configuration manuelle requise"
+        ]
+      }
+    },
+    {
+      "name": "NVIDIA App",
+      "method": "winget",
+      "package_id": "NVIDIA.GeForceExperience",
+      "category": "Utilitaires",
+      "description": "Application NVIDIA GeForce Experience",
+      "base_directory": "D:\\Utils\\NVIDIA App",
+      "installer": {
+        "type": "winget",
+        "silent_args": ["--accept-package-agreements", "--accept-source-agreements", "--silent"]
+      }
+    },
+    {
+      "name": "DupeGuru",
+      "method": "winget",
+      "package_id": "HardcodedSoftware.dupeGuru",
+      "category": "Utilitaires",
+      "description": "Outil de détection de fichiers en double",
+      "base_directory": "D:\\Utils\\DupeGuru",
+      "installer": {
+        "type": "winget",
+        "silent_args": ["--accept-package-agreements", "--accept-source-agreements", "--silent"]
+      }
+    },
+    {
+      "name": "WinRAR",
+      "method": "winget",
+      "package_id": "RARLab.WinRAR",
+      "category": "Utilitaires",
+      "description": "Archiveur de fichiers RAR",
+      "base_directory": "D:\\Utils\\WinRAR",
+      "installer": {
+        "type": "winget",
+        "silent_args": ["--accept-package-agreements", "--accept-source-agreements", "--silent"]
+      }
+    },
+    {
+      "name": "Nucleus Coop",
+      "method": "custom",
+      "category": "Jeux",
+      "description": "Outil pour jouer en local à plusieurs sur un seul PC",
+      "base_directory": "D:\\Utils\\Nucleus Coop",
+      "installer": {
+        "type": "custom",
+        "download_url": "https://github.com/ZeroMemoryEx/NucleusCoop/releases/latest/download/NucleusCoop.zip",
+        "filename": "NucleusCoop.zip",
+        "pre_install_commands": [
+          "echo Téléchargement de Nucleus Coop...",
+          "echo Extraction de l'archive..."
+        ],
+        "post_install_commands": [
+          "echo Nucleus Coop installé - Configuration manuelle requise",
+          "echo Consultez la documentation sur GitHub pour la configuration"
+        ]
+      }
+    },
+    {
+      "name": "Cursor",
+      "method": "winget",
+      "package_id": "Cursor.Cursor",
+      "category": "Développement",
+      "description": "Éditeur de code avec IA intégrée",
+      "base_directory": "D:\\Utils\\Cursor",
+      "installer": {
+        "type": "winget",
+        "silent_args": ["--accept-package-agreements", "--accept-source-agreements", "--silent"]
+      }
+    }
+  ]
+}

@@ -21,6 +21,30 @@
       }
     },
     {
+      "name": "OBS Studio",
+      "method": "winget",
+      "package_id": "OBSProject.OBSStudio",
+      "category": "Jeux",
+      "description": "Logiciel de streaming",
+      "base_directory": "D:\\Utils\\OBS",
+      "installer": {
+        "type": "winget",
+        "silent_args": ["--accept-package-agreements", "--accept-source-agreements", "--silent"]
+      }
+    },
+    {
+      "name": "Elgato Stream Deck",
+      "method": "winget",
+      "package_id": "Elgato.StreamDeck",
+      "category": "Jeux",
+      "description": "Logiciel de streaming",
+      "base_directory": "D:\\Utils\\StreamDeck",
+      "installer": {
+        "type": "winget",
+        "silent_args": ["--accept-package-agreements", "--accept-source-agreements", "--silent"]
+      }
+    },
+    {
       "name": "Mozilla Thunderbird",
       "method": "winget",
       "package_id": "Mozilla.Thunderbird",

@@ -144,7 +144,7 @@ Modifiez le fichier JSON de configuration :
   "package_id": "Publisher.SoftwareName",
   "category": "Ma Catégorie",
   "description": "Description du logiciel",
-  "base_directory": "D:\\Utils\\MonLogiciel",
+  "base_directory": "C:\\Utils\\MonLogiciel",
   "installer": {
     "type": "winget",
     "silent_args": ["--accept-package-agreements", "--accept-source-agreements", "--silent"]
@@ -158,7 +158,7 @@ Modifiez le fichier JSON de configuration :
 {
   "name": "Logiciel Personnalisé",
   "method": "custom",
-  "base_directory": "D:\\Utils\\MonLogiciel",
+  "base_directory": "C:\\Utils\\MonLogiciel",
   "installer": {
     "type": "custom",
     "download_url": "https://example.com/installer.exe",

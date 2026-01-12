@@ -63,23 +63,6 @@
       "description": "DBeaver - Client de base de données universel"
     },
     {
-      "name": "obs-studio",
-      "description": "Logiciel de streaming et d'enregistrement vidéo"
-    },
-    {
-      "name": "steam",
-      "description": "Plateforme de jeux Steam"
-    },
-    {
-      "name": "lutris",
-      "description": "Gestionnaire de jeux open source"
-    },
-    {
-      "name": "qsync-client",
-      "description": "QSync - Client de synchronisation QNAP",
-      "download_url": "https://download.qnap.com/Storage/Utility/QNAPQsyncClientUbuntux64-5.0.0.0.deb"
-    },
-    {
       "name": "discord",
       "description": "Application de chat et communication"
     },
@@ -91,10 +74,6 @@
     {
       "name": "gimp",
       "description": "Éditeur d'images GNU"
-    },
-    {
-      "name": "musescore",
-      "description": "Éditeur de partitions musicales"
     },
     {
       "name": "sublime-text",

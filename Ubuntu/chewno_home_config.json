@@ -104,6 +104,56 @@
     {
       "name": "vlc",
       "description": "Lecteur multimédia VLC"
+    },
+    {
+      "name": "streamdeck-ui",
+      "description": "Elgato Stream Deck - Interface de contrôle pour Linux"
+    },
+    {
+      "name": "piper",
+      "description": "Configuration des souris gaming (support Roccat et autres)",
+      "install_command": "sudo add-apt-repository -y ppa:libratbag-piper/piper-libratbag-git && sudo apt update && sudo apt install -y piper"
+    },
+    {
+      "name": "roccat-tools",
+      "description": "Outils de configuration pour périphériques Roccat",
+      "install_command": "flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo && flatpak install -y flathub net.sourceforge.roccat.roccat-tools"
+    },
+    {
+      "name": "pulseaudio",
+      "description": "Serveur audio PulseAudio (utile pour périphériques Turtle Beach et autres casques)"
+    },
+    {
+      "name": "pavucontrol",
+      "description": "Contrôleur audio PulseAudio (configuration des périphériques audio)"
+    },
+    {
+      "name": "antimicro",
+      "description": "Mappage de manettes et périphériques de jeu (compatible Azeron, Victrix)",
+      "install_command": "sudo add-apt-repository -y ppa:ryochan7/antimicro && sudo apt update && sudo apt install -y antimicro"
+    },
+    {
+      "name": "joystick",
+      "description": "Outils de test et configuration pour manettes de jeu"
+    },
+    {
+      "name": "xone",
+      "description": "Pilote Linux pour Xbox One/Series X|S (support Victrix)",
+      "install_command": "sudo apt update && sudo apt install -y dkms curl cabextract && cd /tmp && git clone https://github.com/medusalix/xone.git && cd xone && sudo ./install.sh --release && sudo xone-get-firmware.sh && cd -"
+    },
+    {
+      "name": "xpadneo",
+      "description": "Pilote avancé pour Xbox One S (Bluetooth) et Xbox Wireless Controller",
+      "install_command": "sudo apt update && sudo apt install -y dkms linux-headers-$(uname -r) && cd /tmp && git clone https://github.com/atar-axis/xpadneo.git && cd xpadneo && sudo ./install.sh && cd -"
+    },
+    {
+      "name": "sc-controller",
+      "description": "Configuration avancée de manettes (alternative avec support étendu)"
+    },
+    {
+      "name": "nvidia-drivers",
+      "description": "Drivers NVIDIA (détection automatique et installation de la version recommandée)",
+      "install_command": "if lspci | grep -i nvidia > /dev/null; then sudo apt update && sudo apt install -y ubuntu-drivers-common && sudo ubuntu-drivers install; else echo 'Aucune carte graphique NVIDIA détectée, installation ignorée'; fi"
     }
   ]
 }

@@ -154,6 +154,11 @@
       "name": "nvidia-drivers",
       "description": "Drivers NVIDIA (détection automatique et installation de la version recommandée)",
       "install_command": "if lspci | grep -i nvidia > /dev/null; then sudo apt update && sudo apt install -y ubuntu-drivers-common && sudo ubuntu-drivers install; else echo 'Aucune carte graphique NVIDIA détectée, installation ignorée'; fi"
+    },
+    {
+      "name": "edrawmind",
+      "description": "EdrawMind - Outil de mind mapping",
+      "install_command": "DOWNLOAD_URL=$(curl -fsSL https://www.edrawmind.com/download-desktop.html | grep -oP 'https://[^\"']*edrawmind[^\"']*\\.deb' | head -n1); if [ -z \"$DOWNLOAD_URL\" ]; then echo 'Impossible de trouver le lien de téléchargement EdrawMind'; exit 1; fi; echo \"Téléchargement d'EdrawMind depuis $DOWNLOAD_URL\"; wget -q \"$DOWNLOAD_URL\" -O /tmp/edrawmind_latest.deb && sudo dpkg -i /tmp/edrawmind_latest.deb || sudo apt-get install -f -y"
     }
   ]
 }

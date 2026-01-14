@@ -1,0 +1,179 @@
+{
+  "packages": [
+    {
+      "name": "brave-browser",
+      "description": "Navigateur web Brave",
+      "category": "web"
+    },
+    {
+      "name": "protonmail-bridge",
+      "description": "ProtonMail Bridge pour clients email",
+      "category": "email"
+    },
+    {
+      "name": "protonvpn",
+      "description": "ProtonVPN - Client VPN",
+      "category": "security"
+    },
+    {
+      "name": "proton-authenticator",
+      "description": "ProtonAuthenticator - Application d'authentification à deux facteurs",
+      "category": "security"
+    },
+    {
+      "name": "proton-pass",
+      "description": "ProtonPass - Gestionnaire de mots de passe",
+      "category": "security"
+    },
+    {
+      "name": "ferdium",
+      "description": "Client de messagerie tout-en-un",
+      "category": "communication"
+    },
+    {
+      "name": "discord",
+      "description": "Application de chat et communication",
+      "category": "communication"
+    },
+    {
+      "name": "superproductivity",
+      "description": "Application de productivité",
+      "category": "productivity"
+    },
+    {
+      "name": "edrawmind",
+      "description": "EdrawMind - Outil de mind mapping",
+      "category": "productivity"
+    },
+    {
+      "name": "git",
+      "description": "Système de contrôle de version distribué",
+      "category": "development"
+    },
+    {
+      "name": "gitkraken",
+      "description": "Client Git GUI",
+      "category": "development"
+    },
+    {
+      "name": "qt6",
+      "description": "Qt 6 - Framework de développement",
+      "category": "development"
+    },
+    {
+      "name": "cursor",
+      "description": "Cursor AI - Éditeur de code IA",
+      "category": "development"
+    },
+    {
+      "name": "sublime-text",
+      "description": "Éditeur de texte Sublime Text",
+      "category": "development"
+    },
+    {
+      "name": "texmaker",
+      "description": "Éditeur LaTeX",
+      "category": "development"
+    },
+    {
+      "name": "dbeaver-ce",
+      "description": "Client de base de données universel",
+      "category": "database"
+    },
+    {
+      "name": "figma-linux",
+      "description": "Figma - Outil de design",
+      "category": "design"
+    },
+    {
+      "name": "gimp",
+      "description": "Éditeur d'images GNU",
+      "category": "design"
+    },
+    {
+      "name": "vlc",
+      "description": "Lecteur multimédia VLC",
+      "category": "multimedia"
+    },
+    {
+      "name": "obs-studio",
+      "description": "Logiciel de streaming et d'enregistrement vidéo",
+      "category": "multimedia"
+    },
+    {
+      "name": "musescore",
+      "description": "Éditeur de partitions musicales",
+      "category": "multimedia"
+    },
+    {
+      "name": "steam",
+      "description": "Plateforme de jeux Steam",
+      "category": "gaming"
+    },
+    {
+      "name": "lutris",
+      "description": "Gestionnaire de jeux open source",
+      "category": "gaming"
+    },
+    {
+      "name": "antimicro",
+      "description": "Mappage de manettes",
+      "category": "gaming"
+    },
+    {
+      "name": "joystick",
+      "description": "Outils de test pour manettes",
+      "category": "gaming"
+    },
+    {
+      "name": "sc-controller",
+      "description": "Configuration avancée de manettes",
+      "category": "gaming"
+    },
+    {
+      "name": "streamdeck-ui",
+      "description": "Interface Elgato Stream Deck",
+      "category": "hardware"
+    },
+    {
+      "name": "piper",
+      "description": "Configuration des souris gaming",
+      "category": "hardware"
+    },
+    {
+      "name": "roccat-tools",
+      "description": "Outils périphériques Roccat",
+      "category": "hardware"
+    },
+    {
+      "name": "pulseaudio",
+      "description": "Serveur audio PulseAudio",
+      "category": "audio"
+    },
+    {
+      "name": "pavucontrol",
+      "description": "Contrôleur audio PulseAudio",
+      "category": "audio"
+    },
+    {
+      "name": "xone",
+      "description": "Pilote Xbox One/Series",
+      "category": "drivers"
+    },
+    {
+      "name": "xpadneo",
+      "description": "Pilote Bluetooth Xbox",
+      "category": "drivers"
+    },
+    {
+      "name": "nvidia-drivers",
+      "description": "Drivers NVIDIA",
+      "category": "drivers"
+    },
+    {
+      "name": "qsync-client",
+      "description": "Client de synchronisation QNAP",
+      "category": "system"
+    }
+  ]
+}

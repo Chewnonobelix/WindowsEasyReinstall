@@ -1,0 +1,194 @@
+{
+  "packages": [
+    {
+      "name": "pavucontrol",
+      "description": "Contrôleur audio PulseAudio",
+      "category": "audio"
+    },
+    {
+      "name": "pulseaudio",
+      "description": "Serveur audio PulseAudio",
+      "category": "audio"
+    },
+    {
+      "name": "discord",
+      "description": "Application de chat et communication",
+      "category": "communication"
+    },
+    {
+      "name": "ferdium",
+      "description": "Client de messagerie tout-en-un",
+      "category": "communication"
+    },
+    {
+      "name": "dbeaver-ce",
+      "description": "Client de base de données universel",
+      "category": "database"
+    },
+    {
+      "name": "mysql-server",
+      "description": "MySQL Server - Serveur de base de données",
+      "category": "database"
+    },
+    {
+      "name": "figma-linux",
+      "description": "Figma - Outil de design",
+      "category": "design"
+    },
+    {
+      "name": "gimp",
+      "description": "Éditeur d'images GNU",
+      "category": "design"
+    },
+    {
+      "name": "cursor",
+      "description": "Cursor AI - Éditeur de code IA",
+      "category": "development"
+    },
+    {
+      "name": "git",
+      "description": "Système de contrôle de version distribué",
+      "category": "development"
+    },
+    {
+      "name": "gitkraken",
+      "description": "Client Git GUI",
+      "category": "development"
+    },
+    {
+      "name": "qt6",
+      "description": "Qt 6 - Framework de développement",
+      "category": "development"
+    },
+    {
+      "name": "sublime-text",
+      "description": "Éditeur de texte Sublime Text",
+      "category": "development"
+    },
+    {
+      "name": "texmaker",
+      "description": "Éditeur LaTeX",
+      "category": "development"
+    },
+    {
+      "name": "nvidia-drivers",
+      "description": "Drivers NVIDIA",
+      "category": "drivers"
+    },
+    {
+      "name": "xone",
+      "description": "Pilote Xbox One/Series",
+      "category": "drivers"
+    },
+    {
+      "name": "xpadneo",
+      "description": "Pilote Bluetooth Xbox",
+      "category": "drivers"
+    },
+    {
+      "name": "protonmail-bridge",
+      "description": "ProtonMail Bridge pour clients email",
+      "category": "email"
+    },
+    {
+      "name": "antimicro",
+      "description": "Mappage de manettes",
+      "category": "gaming"
+    },
+    {
+      "name": "joystick",
+      "description": "Outils de test pour manettes",
+      "category": "gaming"
+    },
+    {
+      "name": "lutris",
+      "description": "Gestionnaire de jeux open source",
+      "category": "gaming"
+    },
+    {
+      "name": "sc-controller",
+      "description": "Configuration avancée de manettes",
+      "category": "gaming"
+    },
+    {
+      "name": "steam",
+      "description": "Plateforme de jeux Steam",
+      "category": "gaming"
+    },
+    {
+      "name": "piper",
+      "description": "Configuration des souris gaming",
+      "category": "hardware"
+    },
+    {
+      "name": "roccat-tools",
+      "description": "Outils périphériques Roccat",
+      "category": "hardware"
+    },
+    {
+      "name": "streamdeck-ui",
+      "description": "Interface Elgato Stream Deck",
+      "category": "hardware"
+    },
+    {
+      "name": "calibre",
+      "description": "Calibre - Gestionnaire de bibliothèque eBook",
+      "category": "multimedia"
+    },
+    {
+      "name": "musescore",
+      "description": "Éditeur de partitions musicales",
+      "category": "multimedia"
+    },
+    {
+      "name": "obs-studio",
+      "description": "Logiciel de streaming et d'enregistrement vidéo",
+      "category": "multimedia"
+    },
+    {
+      "name": "plexmediaserver",
+      "description": "Plex Media Server - Serveur multimédia (tentative via snap si APT indisponible)",
+      "category": "multimedia"
+    },
+    {
+      "name": "vlc",
+      "description": "Lecteur multimédia VLC",
+      "category": "multimedia"
+    },
+    {
+      "name": "edrawmind",
+      "description": "EdrawMind - Outil de mind mapping",
+      "category": "productivity"
+    },
+    {
+      "name": "superproductivity",
+      "description": "Application de productivité",
+      "category": "productivity"
+    },
+    {
+      "name": "proton-authenticator",
+      "description": "ProtonAuthenticator - Application d'authentification à deux facteurs",
+      "category": "security"
+    },
+    {
+      "name": "proton-pass",
+      "description": "ProtonPass - Gestionnaire de mots de passe",
+      "category": "security"
+    },
+    {
+      "name": "protonvpn",
+      "description": "ProtonVPN - Client VPN",
+      "category": "security"
+    },
+    {
+      "name": "qsync-client",
+      "description": "Client de synchronisation QNAP",
+      "category": "system"
+    },
+    {
+      "name": "brave-browser",
+      "description": "Navigateur web Brave",
+      "category": "web"
+    }
+  ]
+}

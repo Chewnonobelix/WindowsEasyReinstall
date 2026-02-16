@@ -1,38 +1,37 @@
 #!/bin/bash
 
 # Script d'installation de paquets depuis un fichier JSON
-# Ordre de priorité: apt -> snap -> téléchargement direct
+# Ordre de priorité: install_command (JSON) -> apt -> snap
 
-set -euo pipefail
+set -uo pipefail
+# Note: on n'utilise pas set -e car les fonctions d'installation retournent
+# explicitement 0/1 et sont toujours appelées dans un contexte if/&&/||
 
-# Couleurs pour les messages
+# ─────────────────────────────────────────────
+# Couleurs et logs
+# ─────────────────────────────────────────────
+
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+CYAN='\033[0;36m'
+NC='\033[0m'
 
-# Fonction pour afficher les messages
-log_info() {
-    echo -e "${BLUE}[INFO]${NC} $1"
-}
+log_info()    { echo -e "${BLUE}[INFO]${NC} $1"; }
+log_success() { echo -e "${GREEN}[SUCCESS]${NC} $1"; }
+log_warning() { echo -e "${YELLOW}[WARNING]${NC} $1"; }
+log_error()   { echo -e "${RED}[ERROR]${NC} $1"; }
+log_section() { echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"; }
 
-log_success() {
-    echo -e "${GREEN}[SUCCESS]${NC} $1"
-}
-
-log_warning() {
-    echo -e "${YELLOW}[WARNING]${NC} $1"
-}
-
-log_error() {
-    echo -e "${RED}[ERROR]${NC} $1"
-}
+# ─────────────────────────────────────────────
+# Prérequis
+# ─────────────────────────────────────────────
 
 # Vérifier que jq est installé
 if ! command -v jq &> /dev/null; then
-    log_error "jq n'est pas installé. Installation..."
-    sudo apt update && sudo apt install -y jq
+    log_info "jq n'est pas installé. Installation..."
+    sudo apt update && sudo apt install -y jq || { log_error "Impossible d'installer jq."; exit 1; }
 fi
 
 # Vérifier les arguments
@@ -48,13 +47,23 @@ if [ ! -f "$CONFIG_FILE" ]; then
     exit 1
 fi
 
+# Valider le JSON
+if ! jq empty "$CONFIG_FILE" 2>/dev/null; then
+    log_error "Le fichier $CONFIG_FILE n'est pas un JSON valide."
+    exit 1
+fi
+
 log_info "Lecture du fichier de configuration: $CONFIG_FILE"
 
-# Fonction pour installer via apt
+# ─────────────────────────────────────────────
+# Fonctions d'installation
+# ─────────────────────────────────────────────
+
+# FIX: install_via_apt ne fait plus de apt update (fait une seule fois globalement)
 install_via_apt() {
     local package_name="$1"
     log_info "Tentative d'installation via apt: $package_name"
-    
+
     if sudo apt install -y "$package_name" 2>/dev/null; then
         log_success "Paquet $package_name installé via apt"
         return 0
@@ -64,13 +73,16 @@ install_via_apt() {
     fi
 }
 
-# Fonction pour installer via snap
+# FIX: install_via_snap tente d'abord sans --classic, puis avec si nécessaire
 install_via_snap() {
     local package_name="$1"
     log_info "Tentative d'installation via snap: $package_name"
-    
+
     if sudo snap install "$package_name" 2>/dev/null; then
         log_success "Paquet $package_name installé via snap"
+        return 0
+    elif sudo snap install "$package_name" --classic 2>/dev/null; then
+        log_success "Paquet $package_name installé via snap (--classic)"
         return 0
     else
         log_warning "Échec de l'installation via snap pour $package_name"
@@ -78,518 +90,492 @@ install_via_snap() {
     fi
 }
 
-# Fonction pour télécharger et installer directement
-install_via_download() {
+# FIX: utilise un sous-shell pour isoler le cd, et gère le cleanup localement
+install_via_custom() {
     local package_info="$1"
-    local package_name=$(echo "$package_info" | jq -r '.name // empty')
-    local download_url=$(echo "$package_info" | jq -r '.download_url // empty')
-    local install_command=$(echo "$package_info" | jq -r '.install_command // empty')
-    
+    local package_name
+    local download_url
+    local install_command
+
+    package_name=$(echo "$package_info"    | jq -r '.name            // empty')
+    download_url=$(echo "$package_info"    | jq -r '.download_url    // empty')
+    install_command=$(echo "$package_info" | jq -r '.install_command // empty')
+
     if [ -z "$download_url" ] && [ -z "$install_command" ]; then
-        log_warning "Aucune URL de téléchargement ou commande d'installation spécifiée pour $package_name"
+        log_warning "Aucune URL ou commande d'installation pour $package_name"
         return 1
     fi
-    
-    log_info "Tentative de téléchargement direct pour: $package_name"
-    
-    # Créer un répertoire temporaire
-    TEMP_DIR=$(mktemp -d)
-    trap "rm -rf $TEMP_DIR" EXIT
-    
-    cd "$TEMP_DIR"
-    
-    # Si une URL est fournie, télécharger le fichier
-    if [ -n "$download_url" ]; then
-        log_info "Téléchargement depuis: $download_url"
-        if wget -q "$download_url" -O downloaded_file || curl -sL "$download_url" -o downloaded_file; then
-            log_success "Fichier téléchargé avec succès"
-            
-            # Détecter le type de fichier et installer
-            if [[ "$download_url" == *.deb ]]; then
-                log_info "Installation du paquet .deb"
-                sudo dpkg -i downloaded_file || sudo apt-get install -f -y
-                log_success "Paquet $package_name installé via téléchargement direct (.deb)"
-                return 0
-            elif [[ "$download_url" == *.AppImage ]]; then
-                log_info "Fichier AppImage détecté"
-                chmod +x downloaded_file
-                # Déplacer vers un répertoire approprié (optionnel)
-                if [ -n "$package_name" ]; then
-                    # Créer ~/.local/bin s'il n'existe pas
+
+    # FIX: tout le travail de téléchargement se passe dans un sous-shell
+    # → le cd n'affecte pas le répertoire courant du script parent
+    (
+        # FIX: trap local au sous-shell uniquement
+        TEMP_DIR=$(mktemp -d)
+        trap 'rm -rf "$TEMP_DIR"' EXIT
+
+        cd "$TEMP_DIR"
+
+        if [ -n "$download_url" ]; then
+            log_info "Téléchargement depuis: $download_url"
+
+            if wget -q "$download_url" -O downloaded_file 2>/dev/null \
+               || curl -sL "$download_url" -o downloaded_file 2>/dev/null; then
+
+                log_success "Fichier téléchargé avec succès"
+
+                if [[ "$download_url" == *.deb ]] || file downloaded_file 2>/dev/null | grep -q "Debian"; then
+                    log_info "Installation du paquet .deb"
+                    sudo dpkg -i downloaded_file && sudo apt-get install -f -y
+                    log_success "Paquet $package_name installé (.deb)"
+                    exit 0
+
+                elif [[ "$download_url" == *.AppImage ]] || file downloaded_file 2>/dev/null | grep -qi "appimage"; then
+                    log_info "Fichier AppImage détecté"
+                    chmod +x downloaded_file
                     mkdir -p "$HOME/.local/bin"
-                    sudo mv downloaded_file "/usr/local/bin/$package_name" 2>/dev/null || mv downloaded_file "$HOME/.local/bin/$package_name"
-                    log_success "Paquet $package_name installé via téléchargement direct (AppImage)"
-                    return 0
+                    mv downloaded_file "$HOME/.local/bin/$package_name"
+                    # Créer un .desktop entry minimal
+                    mkdir -p "$HOME/.local/share/applications"
+                    printf '[Desktop Entry]\nName=%s\nExec=%s\nType=Application\nCategories=Application;\n' \
+                        "$package_name" "$HOME/.local/bin/$package_name" \
+                        > "$HOME/.local/share/applications/${package_name}.desktop"
+                    log_success "Paquet $package_name installé (AppImage -> ~/.local/bin/)"
+                    exit 0
+
+                elif [[ "$download_url" == *.sh ]]; then
+                    log_info "Script shell détecté"
+                    chmod +x downloaded_file
+                    bash downloaded_file
+                    log_success "Paquet $package_name installé (script shell)"
+                    exit 0
+
+                else
+                    log_warning "Type de fichier non reconnu pour $download_url"
                 fi
-            elif [[ "$download_url" == *.sh ]]; then
-                log_info "Script shell détecté"
-                chmod +x downloaded_file
-                sudo bash downloaded_file || bash downloaded_file
-                log_success "Paquet $package_name installé via téléchargement direct (script)"
-                return 0
             else
-                log_warning "Type de fichier non reconnu pour $download_url"
+                log_error "Échec du téléchargement depuis $download_url"
+                exit 1
             fi
-        else
-            log_error "Échec du téléchargement depuis $download_url"
-            return 1
         fi
-    fi
-    
-    # Si une commande d'installation est fournie, l'exécuter
-    if [ -n "$install_command" ]; then
-        log_info "Exécution de la commande d'installation: $install_command"
-        if eval "$install_command"; then
-            log_success "Paquet $package_name installé via commande personnalisée"
-            return 0
-        else
-            log_error "Échec de la commande d'installation"
-            return 1
+
+        if [ -n "$install_command" ]; then
+            log_info "Exécution de la commande d'installation personnalisée..."
+            if eval "$install_command"; then
+                log_success "Paquet $package_name installé via commande personnalisée"
+                exit 0
+            else
+                log_error "Échec de la commande d'installation pour $package_name"
+                exit 1
+            fi
         fi
-    fi
-    
-    return 1
+
+        exit 1
+    )
+    return $?
 }
 
+# ─────────────────────────────────────────────
 # Fonction principale d'installation
+# FIX: respecte l'ordre install_command > apt > snap
+# ─────────────────────────────────────────────
+
 install_package() {
     local package_info="$1"
-    local package_name=$(echo "$package_info" | jq -r '.name // empty')
-    
+    local package_name
+    local install_command
+
+    package_name=$(echo "$package_info"    | jq -r '.name            // empty')
+    install_command=$(echo "$package_info" | jq -r '.install_command // empty')
+
     if [ -z "$package_name" ]; then
         log_error "Nom de paquet manquant dans la configuration"
         return 1
     fi
-    
-    log_info "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+    log_section
     log_info "Installation de: $package_name"
-    log_info "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    
-    # Vérifier si le paquet est déjà installé
-    local installed=false
-    
-    # Vérifier via apt
-    if dpkg -l | grep -q "^ii.*$package_name"; then
-        log_info "Paquet $package_name déjà installé via apt"
-        installed=true
-    fi
-    
-    # Vérifier via snap
-    if snap list 2>/dev/null | grep -q "^$package_name"; then
-        log_info "Paquet $package_name déjà installé via snap"
-        installed=true
-    fi
-    
-    if [ "$installed" = true ]; then
-        log_success "Paquet $package_name déjà installé, passage au suivant"
+    log_section
+
+    # Vérifier si déjà installé
+    if dpkg -l 2>/dev/null | grep -q "^ii[[:space:]]*${package_name}[[:space:]]"; then
+        log_success "$package_name est déjà installé (apt/dpkg)"
         return 0
     fi
-    
-    # Essayer apt en premier
+    if snap list 2>/dev/null | grep -q "^${package_name}[[:space:]]"; then
+        log_success "$package_name est déjà installé (snap)"
+        return 0
+    fi
+    if command -v "$package_name" &>/dev/null; then
+        log_success "$package_name est déjà disponible dans le PATH"
+        return 0
+    fi
+
+    # FIX: si install_command est défini dans le JSON → l'utiliser directement
+    # sans tenter apt ou snap avant (évite des installations incorrectes ou
+    # des snaps sans --classic)
+    if [ -n "$install_command" ]; then
+        log_info "Utilisation de la commande définie dans le JSON..."
+        if install_via_custom "$package_info"; then
+            return 0
+        fi
+        log_error "Impossible d'installer $package_name"
+        return 1
+    fi
+
+    # Sinon fallback: apt → snap
     if install_via_apt "$package_name"; then
         return 0
     fi
-    
-    # Essayer snap en deuxième
+
     if install_via_snap "$package_name"; then
         return 0
     fi
-    
-    # Essayer le téléchargement direct en dernier
-    if install_via_download "$package_info"; then
-        return 0
-    fi
-    
+
     log_error "Impossible d'installer $package_name avec aucune méthode"
     return 1
 }
 
-# Mettre à jour les dépôts apt
-log_info "Mise à jour des dépôts apt..."
-sudo apt update
+# ─────────────────────────────────────────────
+# Configuration SSH + clonage GitHub
+# ─────────────────────────────────────────────
 
-# Lire et traiter le fichier JSON
-PACKAGES=$(jq -c '.packages[]' "$CONFIG_FILE" 2>/dev/null)
+setup_ssh_key() {
+    log_section
+    log_info "Configuration de la clé SSH pour GitHub"
+    log_section
 
-if [ -z "$PACKAGES" ]; then
-    log_error "Aucun paquet trouvé dans le fichier de configuration ou format JSON invalide"
-    exit 1
-fi
+    local SSH_KEY_NAME="id_ed25519_github"
+    local SSH_KEY_PATH="$HOME/.ssh/$SSH_KEY_NAME"
+    local SSH_PUB_KEY_PATH="${SSH_KEY_PATH}.pub"
 
-# Compteurs
-TOTAL=0
-SUCCESS=0
-FAILED=0
+    mkdir -p "$HOME/.ssh"
+    chmod 700 "$HOME/.ssh"
 
-# Traiter chaque paquet
-while IFS= read -r package_info; do
-    TOTAL=$((TOTAL + 1))
-    if install_package "$package_info"; then
-        SUCCESS=$((SUCCESS + 1))
-    else
-        FAILED=$((FAILED + 1))
-    fi
-    echo ""
-done <<< "$PACKAGES"
-
-# Résumé
-log_info "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-log_info "Résumé de l'installation:"
-log_info "  Total: $TOTAL"
-log_success "  Réussis: $SUCCESS"
-if [ $FAILED -gt 0 ]; then
-    log_error "  Échoués: $FAILED"
-fi
-log_info "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-
-if [ $FAILED -gt 0 ]; then
-    exit 1
-fi
-
-# Fonction pour cloner les dépôts GitHub
-clone_github_repos() {
-    log_info "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    log_info "Clonage des dépôts GitHub"
-    log_info "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    
-    # Demander le nom d'utilisateur GitHub
-    echo ""
-    read -p "Entrez le nom d'utilisateur GitHub (ou appuyez sur Entrée pour ignorer): " GITHUB_USERNAME
-    
-    if [ -z "$GITHUB_USERNAME" ]; then
-        log_info "Clonage GitHub ignoré."
-        return 0
-    fi
-    
-    # Demander où cloner les dépôts
-    echo ""
-    read -p "Où voulez-vous cloner les dépôts? (défaut: $HOME/github): " CLONE_DIR
-    
-    if [ -z "$CLONE_DIR" ]; then
-        CLONE_DIR="$HOME/github"
-    fi
-    
-    # Créer le répertoire s'il n'existe pas
-    mkdir -p "$CLONE_DIR"
-    
-    log_info "Répertoire de clonage: $CLONE_DIR"
-    
-    # Vérifier que curl est disponible
-    if ! command -v curl &> /dev/null; then
-        log_error "curl n'est pas installé. Installation..."
-        sudo apt install -y curl
-    fi
-    
-    # Vérifier que git est disponible
-    if ! command -v git &> /dev/null; then
-        log_error "git n'est pas installé. Installation..."
-        sudo apt install -y git
-    fi
-    
-    # Fonction pour générer et ajouter la clé SSH à GitHub
-    setup_ssh_key() {
-        log_info "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-        log_info "Configuration de la clé SSH pour GitHub"
-        log_info "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-        
-        SSH_KEY_NAME="id_ed25519_github"
-        SSH_KEY_PATH="$HOME/.ssh/$SSH_KEY_NAME"
-        SSH_PUB_KEY_PATH="$SSH_KEY_PATH.pub"
-        
-        # Vérifier si une clé SSH existe déjà
-        if [ -f "$SSH_PUB_KEY_PATH" ]; then
-            log_info "Une clé SSH existe déjà: $SSH_PUB_KEY_PATH"
-            read -p "Voulez-vous utiliser cette clé existante? (O/n): " USE_EXISTING
-            if [[ ! "$USE_EXISTING" =~ ^[Nn]$ ]]; then
-                log_info "Utilisation de la clé existante"
-                cat "$SSH_PUB_KEY_PATH"
-                echo ""
-                read -p "Appuyez sur Entrée après avoir ajouté cette clé à votre compte GitHub..."
-                return 0
-            fi
-        fi
-        
-        # Demander l'email pour la clé SSH
-        echo ""
-        read -p "Entrez votre email GitHub (pour la clé SSH): " GITHUB_EMAIL
-        
-        if [ -z "$GITHUB_EMAIL" ]; then
-            log_warning "Email non fourni, utilisation de l'email Git configuré ou génération sans email"
-            GITHUB_EMAIL=$(git config user.email 2>/dev/null || echo "")
-        fi
-        
-        # Générer la clé SSH
-        log_info "Génération de la clé SSH..."
-        
-        # Créer le répertoire .ssh s'il n'existe pas
-        mkdir -p "$HOME/.ssh"
-        chmod 700 "$HOME/.ssh"
-        
-        # Générer la clé SSH (Ed25519 recommandé)
-        if [ -n "$GITHUB_EMAIL" ]; then
-            ssh-keygen -t ed25519 -C "$GITHUB_EMAIL" -f "$SSH_KEY_PATH" -N "" <<< "y" 2>/dev/null
-        else
-            ssh-keygen -t ed25519 -f "$SSH_KEY_PATH" -N "" <<< "y" 2>/dev/null
-        fi
-        
-        if [ $? -ne 0 ] || [ ! -f "$SSH_PUB_KEY_PATH" ]; then
-            log_error "Échec de la génération de la clé SSH"
-            return 1
-        fi
-        
-        log_success "Clé SSH générée: $SSH_PUB_KEY_PATH"
-        
-        # Afficher la clé publique
-        echo ""
-        log_info "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-        log_info "Clé publique SSH générée:"
-        log_info "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-        cat "$SSH_PUB_KEY_PATH"
-        echo ""
-        log_info "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-        
-        # Demander si l'utilisateur veut ajouter automatiquement la clé à GitHub
-        echo ""
-        read -p "Voulez-vous ajouter automatiquement cette clé à votre compte GitHub? (O/n): " ADD_TO_GITHUB
-        
-        if [[ "$ADD_TO_GITHUB" =~ ^[Nn]$ ]]; then
-            log_info "Ajoutez manuellement la clé à votre compte GitHub:"
-            log_info "1. Allez sur https://github.com/settings/keys"
-            log_info "2. Cliquez sur 'New SSH key'"
-            log_info "3. Collez le contenu de la clé ci-dessus"
+    # Clé existante
+    if [ -f "$SSH_PUB_KEY_PATH" ]; then
+        log_info "Une clé SSH existe déjà: $SSH_PUB_KEY_PATH"
+        read -p "Voulez-vous utiliser cette clé existante? (O/n): " USE_EXISTING
+        if [[ ! "$USE_EXISTING" =~ ^[Nn]$ ]]; then
+            log_info "Utilisation de la clé existante:"
             echo ""
-            read -p "Appuyez sur Entrée après avoir ajouté la clé à GitHub..."
-        else
-            # Demander le token GitHub pour l'API
+            cat "$SSH_PUB_KEY_PATH"
             echo ""
-            log_info "Pour ajouter automatiquement la clé, vous avez besoin d'un token GitHub."
-            log_info "Créez un token avec la permission 'admin:public_key' sur:"
-            log_info "https://github.com/settings/tokens"
-            echo ""
-            read -p "Entrez votre token GitHub (ou appuyez sur Entrée pour ajouter manuellement): " GITHUB_TOKEN
-            
-            if [ -n "$GITHUB_TOKEN" ]; then
-                # Lire la clé publique
-                SSH_PUB_KEY=$(cat "$SSH_PUB_KEY_PATH")
-                KEY_TITLE="UbuntuConfig-$(hostname)-$(date +%Y%m%d)"
-                
-                # Ajouter la clé via l'API GitHub
-                log_info "Ajout de la clé SSH à votre compte GitHub..."
-                
-                API_RESPONSE=$(curl -s -X POST \
-                    -H "Authorization: token $GITHUB_TOKEN" \
-                    -H "Accept: application/vnd.github.v3+json" \
-                    https://api.github.com/user/keys \
-                    -d "{\"title\":\"$KEY_TITLE\",\"key\":\"$SSH_PUB_KEY\"}")
-                
-                if echo "$API_RESPONSE" | jq -e '.id' > /dev/null 2>&1; then
-                    KEY_ID=$(echo "$API_RESPONSE" | jq -r '.id')
-                    log_success "Clé SSH ajoutée avec succès à votre compte GitHub (ID: $KEY_ID)"
-                else
-                    ERROR_MSG=$(echo "$API_RESPONSE" | jq -r '.message // "Erreur inconnue"' 2>/dev/null || echo "Erreur lors de l'ajout de la clé")
-                    log_error "Échec de l'ajout automatique: $ERROR_MSG"
-                    log_info "Ajoutez manuellement la clé à votre compte GitHub:"
-                    log_info "1. Allez sur https://github.com/settings/keys"
-                    log_info "2. Cliquez sur 'New SSH key'"
-                    log_info "3. Collez le contenu de la clé ci-dessus"
-                    echo ""
-                    read -p "Appuyez sur Entrée après avoir ajouté la clé à GitHub..."
-                fi
+            _configure_ssh_host "$SSH_KEY_PATH"
+            return 0
+        fi
+        # Supprimer l'ancienne clé pour en générer une nouvelle
+        rm -f "$SSH_KEY_PATH" "$SSH_PUB_KEY_PATH"
+    fi
+
+    # Email
+    echo ""
+    read -p "Entrez votre email GitHub (pour la clé SSH): " GITHUB_EMAIL
+    if [ -z "$GITHUB_EMAIL" ]; then
+        GITHUB_EMAIL=$(git config --global user.email 2>/dev/null || echo "")
+    fi
+    if [ -z "$GITHUB_EMAIL" ]; then
+        GITHUB_EMAIL="user@github.com"
+        log_warning "Aucun email fourni, utilisation de: $GITHUB_EMAIL"
+    fi
+
+    # FIX: on supprime la clé existante avant de générer (pas besoin de <<< "y")
+    log_info "Génération de la clé SSH Ed25519..."
+    if ! ssh-keygen -t ed25519 -C "$GITHUB_EMAIL" -f "$SSH_KEY_PATH" -N "" 2>/dev/null; then
+        log_error "Échec de la génération de la clé SSH"
+        return 1
+    fi
+
+    log_success "Clé SSH générée: $SSH_PUB_KEY_PATH"
+    echo ""
+    log_info "Clé publique générée:"
+    log_section
+    cat "$SSH_PUB_KEY_PATH"
+    echo ""
+    log_section
+
+    # Ajout automatique via API GitHub
+    echo ""
+    read -p "Voulez-vous ajouter cette clé à votre compte GitHub via l'API? (O/n): " ADD_TO_GITHUB
+
+    if [[ ! "$ADD_TO_GITHUB" =~ ^[Nn]$ ]]; then
+        echo ""
+        log_info "Créez un token (permission 'admin:public_key') sur:"
+        log_info "https://github.com/settings/tokens"
+        echo ""
+        read -p "Token GitHub (Entrée = ajout manuel): " GITHUB_TOKEN
+
+        if [ -n "$GITHUB_TOKEN" ]; then
+            local SSH_PUB_KEY
+            SSH_PUB_KEY=$(cat "$SSH_PUB_KEY_PATH")
+            local KEY_TITLE="UbuntuConfig-$(hostname)-$(date +%Y%m%d)"
+
+            log_info "Ajout de la clé via l'API GitHub..."
+            local API_RESPONSE
+            API_RESPONSE=$(curl -s -X POST \
+                -H "Authorization: token $GITHUB_TOKEN" \
+                -H "Accept: application/vnd.github.v3+json" \
+                https://api.github.com/user/keys \
+                -d "{\"title\":\"$KEY_TITLE\",\"key\":\"$SSH_PUB_KEY\"}")
+
+            if echo "$API_RESPONSE" | jq -e '.id' > /dev/null 2>&1; then
+                local KEY_ID
+                KEY_ID=$(echo "$API_RESPONSE" | jq -r '.id')
+                log_success "Clé SSH ajoutée à GitHub (ID: $KEY_ID)"
             else
-                log_info "Ajoutez manuellement la clé à votre compte GitHub:"
-                log_info "1. Allez sur https://github.com/settings/keys"
-                log_info "2. Cliquez sur 'New SSH key'"
-                log_info "3. Collez le contenu de la clé ci-dessus"
-                echo ""
-                read -p "Appuyez sur Entrée après avoir ajouté la clé à GitHub..."
+                local ERROR_MSG
+                ERROR_MSG=$(echo "$API_RESPONSE" | jq -r '.message // "Erreur inconnue"' 2>/dev/null)
+                log_error "Échec de l'ajout automatique: $ERROR_MSG"
+                _print_manual_github_instructions
             fi
-        fi
-        
-        # Configurer SSH pour utiliser cette clé pour GitHub
-        log_info "Configuration de SSH pour GitHub..."
-        
-        SSH_CONFIG="$HOME/.ssh/config"
-        mkdir -p "$HOME/.ssh"
-        
-        # Vérifier si la configuration GitHub existe déjà
-        if [ -f "$SSH_CONFIG" ] && grep -q "Host github.com" "$SSH_CONFIG"; then
-            log_info "Configuration SSH GitHub existante trouvée"
         else
-            # Ajouter la configuration GitHub
-            {
-                echo ""
-                echo "Host github.com"
-                echo "    HostName github.com"
-                echo "    User git"
-                echo "    IdentityFile $SSH_KEY_PATH"
-                echo "    IdentitiesOnly yes"
-            } >> "$SSH_CONFIG"
-            chmod 600 "$SSH_CONFIG"
-            log_success "Configuration SSH ajoutée pour GitHub"
+            _print_manual_github_instructions
         fi
-        
-        # Tester la connexion SSH
-        log_info "Test de la connexion SSH à GitHub..."
-        SSH_TEST_OUTPUT=$(ssh -T git@github.com -o StrictHostKeyChecking=no -o ConnectTimeout=5 2>&1)
-        SSH_TEST_EXIT=$?
-        
-        if [ $SSH_TEST_EXIT -eq 1 ] && echo "$SSH_TEST_OUTPUT" | grep -qiE "(successfully authenticated|you've successfully authenticated)"; then
-            log_success "Connexion SSH à GitHub réussie!"
-        elif [ $SSH_TEST_EXIT -eq 255 ]; then
-            log_warning "Impossible de se connecter à GitHub via SSH (timeout ou erreur de connexion)"
-            log_info "Assurez-vous que la clé a été ajoutée à votre compte GitHub"
-            log_info "Vous pouvez tester manuellement avec: ssh -T git@github.com"
-        else
-            log_info "Connexion SSH testée (code de sortie: $SSH_TEST_EXIT)"
-            log_info "Vous pouvez tester manuellement avec: ssh -T git@github.com"
-        fi
-        
-        echo ""
-    }
-    
-    # Générer et configurer la clé SSH
+    else
+        _print_manual_github_instructions
+    fi
+
+    _configure_ssh_host "$SSH_KEY_PATH"
+}
+
+_print_manual_github_instructions() {
+    log_info "Ajoutez manuellement la clé à votre compte GitHub:"
+    log_info "  1. Allez sur https://github.com/settings/keys"
+    log_info "  2. Cliquez sur 'New SSH key'"
+    log_info "  3. Collez le contenu de la clé publique ci-dessus"
+    echo ""
+    read -p "Appuyez sur Entrée après avoir ajouté la clé..."
+}
+
+_configure_ssh_host() {
+    local SSH_KEY_PATH="$1"
+    local SSH_CONFIG="$HOME/.ssh/config"
+
+    if [ -f "$SSH_CONFIG" ] && grep -q "Host github.com" "$SSH_CONFIG"; then
+        log_info "Configuration SSH GitHub déjà présente dans $SSH_CONFIG"
+    else
+        {
+            echo ""
+            echo "Host github.com"
+            echo "    HostName github.com"
+            echo "    User git"
+            echo "    IdentityFile $SSH_KEY_PATH"
+            echo "    IdentitiesOnly yes"
+        } >> "$SSH_CONFIG"
+        chmod 600 "$SSH_CONFIG"
+        log_success "Configuration SSH ajoutée pour github.com"
+    fi
+
+    # Test de connexion
+    log_info "Test de la connexion SSH à GitHub..."
+    local SSH_OUTPUT
+    SSH_OUTPUT=$(ssh -T git@github.com -o StrictHostKeyChecking=no -o ConnectTimeout=5 2>&1 || true)
+
+    if echo "$SSH_OUTPUT" | grep -qiE "successfully authenticated"; then
+        log_success "Connexion SSH à GitHub réussie !"
+    else
+        log_warning "Test SSH non concluant (normal si la clé vient d'être ajoutée)"
+        log_info "Vous pouvez tester manuellement: ssh -T git@github.com"
+    fi
+    echo ""
+}
+
+clone_github_repos() {
+    log_section
+    log_info "Clonage des dépôts GitHub"
+    log_section
+
+    echo ""
+    read -p "Nom d'utilisateur GitHub (Entrée = ignorer): " GITHUB_USERNAME
+    [ -z "$GITHUB_USERNAME" ] && { log_info "Clonage GitHub ignoré."; return 0; }
+
+    echo ""
+    read -p "Répertoire de destination (défaut: $HOME/github): " CLONE_DIR
+    CLONE_DIR="${CLONE_DIR:-$HOME/github}"
+    mkdir -p "$CLONE_DIR"
+    log_info "Répertoire de clonage: $CLONE_DIR"
+
+    # Prérequis
+    command -v curl &>/dev/null || sudo apt install -y curl
+    command -v git  &>/dev/null || sudo apt install -y git
+
+    # Génération de la clé SSH
     setup_ssh_key
-    
+
+    # Récupération des dépôts (avec pagination)
     log_info "Récupération de la liste des dépôts pour $GITHUB_USERNAME..."
-    
-    # Récupérer la liste des dépôts via l'API GitHub (gérer la pagination)
-    REPOS_JSON="[]"
-    PAGE=1
-    PER_PAGE=100
-    
+    local REPOS_JSON="[]"
+    local PAGE=1
+    local PER_PAGE=100
+
     while true; do
-        PAGE_JSON=$(curl -s "https://api.github.com/users/$GITHUB_USERNAME/repos?per_page=$PER_PAGE&page=$PAGE" 2>/dev/null)
-        
-        if [ $? -ne 0 ] || [ -z "$PAGE_JSON" ]; then
-            log_error "Impossible de récupérer les dépôts pour $GITHUB_USERNAME"
+        local PAGE_JSON
+        PAGE_JSON=$(curl -s "https://api.github.com/users/$GITHUB_USERNAME/repos?per_page=$PER_PAGE&page=$PAGE" 2>/dev/null || echo "")
+
+        if [ -z "$PAGE_JSON" ]; then
+            log_error "Impossible de récupérer les dépôts (pas de réponse)"
             return 1
         fi
-        
-        # Vérifier si l'utilisateur existe ou erreur
+
         if echo "$PAGE_JSON" | jq -e '.message' > /dev/null 2>&1; then
-            ERROR_MSG=$(echo "$PAGE_JSON" | jq -r '.message // "Erreur inconnue"')
-            log_error "Erreur GitHub: $ERROR_MSG"
+            local ERR
+            ERR=$(echo "$PAGE_JSON" | jq -r '.message')
+            log_error "Erreur GitHub API: $ERR"
             return 1
         fi
-        
-        # Vérifier si la page est vide
+
+        local PAGE_COUNT
         PAGE_COUNT=$(echo "$PAGE_JSON" | jq '. | length')
-        if [ "$PAGE_COUNT" -eq 0 ]; then
-            break
-        fi
-        
-        # Fusionner avec les dépôts précédents
-        REPOS_JSON=$(echo "$REPOS_JSON" | jq ". + $PAGE_JSON")
-        
-        # Si on a moins de dépôts que la page maximale, on a fini
-        if [ "$PAGE_COUNT" -lt "$PER_PAGE" ]; then
-            break
-        fi
-        
+
+        [ "$PAGE_COUNT" -eq 0 ] && break
+
+        REPOS_JSON=$(echo "$REPOS_JSON" "$PAGE_JSON" | jq -s '.[0] + .[1]')
+
+        [ "$PAGE_COUNT" -lt "$PER_PAGE" ] && break
         PAGE=$((PAGE + 1))
     done
-    
-    # Compter le nombre de dépôts
+
+    local REPO_COUNT
     REPO_COUNT=$(echo "$REPOS_JSON" | jq '. | length')
-    
+
     if [ "$REPO_COUNT" -eq 0 ]; then
-        log_warning "Aucun dépôt trouvé pour $GITHUB_USERNAME"
+        log_warning "Aucun dépôt public trouvé pour $GITHUB_USERNAME"
         return 0
     fi
-    
-    log_info "Nombre de dépôts trouvés: $REPO_COUNT"
+
+    log_info "Dépôts trouvés: $REPO_COUNT"
     echo ""
-    
-    # Compteurs (utiliser des fichiers temporaires pour persister dans la boucle)
+
+    # Compteurs via fichier temporaire (persiste dans la boucle while)
+    local TEMP_COUNTERS
     TEMP_COUNTERS=$(mktemp)
     echo "0|0|0" > "$TEMP_COUNTERS"
-    
-    # Cloner chaque dépôt
-    CLONE_TOTAL=0
+    local TEMP_FAILED_REPOS
+    TEMP_FAILED_REPOS=$(mktemp)
+
+    local CLONE_TOTAL=0
     while IFS='|' read -r repo_name clone_url_https is_private ssh_url; do
         CLONE_TOTAL=$((CLONE_TOTAL + 1))
-        
-        REPO_DIR="$CLONE_DIR/$repo_name"
-        
-        log_info "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-        log_info "[$CLONE_TOTAL/$REPO_COUNT] Dépôt: $repo_name"
-        if [ "$is_private" = "true" ]; then
-            log_info "Type: Privé"
-        fi
-        
-        # Choisir l'URL de clonage (préférer SSH pour les dépôts privés si disponible)
+        local REPO_DIR="$CLONE_DIR/$repo_name"
+
+        log_section
+        log_info "[$CLONE_TOTAL/$REPO_COUNT] $repo_name$([ "$is_private" = "true" ] && echo " (privé)" || echo "")"
+
+        local CLONE_URL="$clone_url_https"
         if [ "$is_private" = "true" ] && [ -n "$ssh_url" ] && [ "$ssh_url" != "null" ]; then
             CLONE_URL="$ssh_url"
-            log_info "Utilisation de SSH pour le dépôt privé"
-        else
-            CLONE_URL="$clone_url_https"
+            log_info "Utilisation de SSH (dépôt privé)"
         fi
-        
-        # Vérifier si le dépôt existe déjà
+
         if [ -d "$REPO_DIR" ]; then
             log_warning "Le dépôt $repo_name existe déjà dans $REPO_DIR"
-            read -p "Voulez-vous le mettre à jour? (o/N): " UPDATE_REPO
+            read -p "Mettre à jour? (o/N): " UPDATE_REPO
             if [[ "$UPDATE_REPO" =~ ^[Oo]$ ]]; then
-                log_info "Mise à jour du dépôt $repo_name..."
+                local SAVED_DIR="$PWD"
                 cd "$REPO_DIR"
                 if git pull 2>/dev/null; then
                     log_success "Dépôt $repo_name mis à jour"
-                    IFS='|' read -r success skipped failed < "$TEMP_COUNTERS"
-                    echo "$((success + 1))|$skipped|$failed" > "$TEMP_COUNTERS"
+                    IFS='|' read -r s sk f < "$TEMP_COUNTERS"; echo "$((s+1))|$sk|$f" > "$TEMP_COUNTERS"
                 else
                     log_error "Échec de la mise à jour de $repo_name"
-                    IFS='|' read -r success skipped failed < "$TEMP_COUNTERS"
-                    echo "$success|$skipped|$((failed + 1))" > "$TEMP_COUNTERS"
+                    IFS='|' read -r s sk f < "$TEMP_COUNTERS"; echo "$s|$sk|$((f+1))" > "$TEMP_COUNTERS"
+                    echo "$repo_name (mise à jour)" >> "$TEMP_FAILED_REPOS"
                 fi
+                cd "$SAVED_DIR"
             else
-                log_info "Dépôt $repo_name ignoré"
-                IFS='|' read -r success skipped failed < "$TEMP_COUNTERS"
-                echo "$success|$((skipped + 1))|$failed" > "$TEMP_COUNTERS"
+                log_info "Ignoré"
+                IFS='|' read -r s sk f < "$TEMP_COUNTERS"; echo "$s|$((sk+1))|$f" > "$TEMP_COUNTERS"
             fi
         else
-            # Cloner le dépôt
-            log_info "Clonage depuis: $CLONE_URL"
-            
             if git clone "$CLONE_URL" "$REPO_DIR" 2>/dev/null; then
-                log_success "Dépôt $repo_name cloné avec succès"
-                IFS='|' read -r success skipped failed < "$TEMP_COUNTERS"
-                echo "$((success + 1))|$skipped|$failed" > "$TEMP_COUNTERS"
+                log_success "Dépôt $repo_name cloné"
+                IFS='|' read -r s sk f < "$TEMP_COUNTERS"; echo "$((s+1))|$sk|$f" > "$TEMP_COUNTERS"
             else
                 log_error "Échec du clonage de $repo_name"
-                if [ "$is_private" = "true" ]; then
-                    log_warning "Pour les dépôts privés, assurez-vous d'avoir configuré SSH ou les credentials Git"
-                fi
-                IFS='|' read -r success skipped failed < "$TEMP_COUNTERS"
-                echo "$success|$skipped|$((failed + 1))" > "$TEMP_COUNTERS"
+                [ "$is_private" = "true" ] && log_warning "Vérifiez que la clé SSH est bien configurée pour les dépôts privés"
+                IFS='|' read -r s sk f < "$TEMP_COUNTERS"; echo "$s|$sk|$((f+1))" > "$TEMP_COUNTERS"
+                echo "$repo_name" >> "$TEMP_FAILED_REPOS"
             fi
         fi
         echo ""
     done < <(echo "$REPOS_JSON" | jq -r '.[] | "\(.name)|\(.clone_url)|\(.private)|\(.ssh_url)"')
-    
-    # Lire les compteurs finaux
+
+    local CLONE_SUCCESS CLONE_SKIPPED CLONE_FAILED
     IFS='|' read -r CLONE_SUCCESS CLONE_SKIPPED CLONE_FAILED < "$TEMP_COUNTERS"
     rm -f "$TEMP_COUNTERS"
-    
-    # Afficher le résumé
-    log_info "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    log_info "Résumé du clonage GitHub:"
-    log_info "  Utilisateur: $GITHUB_USERNAME"
-    log_info "  Répertoire: $CLONE_DIR"
-    log_info "  Total: $REPO_COUNT"
-    log_success "  Clonés/Mis à jour: $CLONE_SUCCESS"
-    if [ "$CLONE_SKIPPED" -gt 0 ]; then
-        log_warning "  Ignorés: $CLONE_SKIPPED"
-    fi
+
+    log_section
+    log_info "Résumé clonage GitHub:"
+    log_info "  Utilisateur : $GITHUB_USERNAME"
+    log_info "  Répertoire  : $CLONE_DIR"
+    log_info "  Total       : $REPO_COUNT"
+    log_success "  Clonés/MAJ  : $CLONE_SUCCESS"
+    [ "$CLONE_SKIPPED" -gt 0 ] && log_warning "  Ignorés     : $CLONE_SKIPPED"
     if [ "$CLONE_FAILED" -gt 0 ]; then
-        log_error "  Échoués: $CLONE_FAILED"
+        log_error "  Échoués     : $CLONE_FAILED"
+        log_section
+        log_error "Dépôts en échec :"
+        while IFS= read -r failed_repo; do
+            log_error "  ✗ $failed_repo"
+        done < "$TEMP_FAILED_REPOS"
     fi
-    log_info "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    rm -f "$TEMP_FAILED_REPOS"
+    log_section
 }
 
-# Proposer de cloner les dépôts GitHub
+# ─────────────────────────────────────────────
+# Main: installation des paquets
+# ─────────────────────────────────────────────
+
+log_info "Mise à jour des dépôts apt..."
+sudo apt update
+
+PACKAGES=$(jq -c '.packages[]' "$CONFIG_FILE" 2>/dev/null || echo "")
+
+if [ -z "$PACKAGES" ]; then
+    log_error "Aucun paquet trouvé dans $CONFIG_FILE (format invalide ou liste vide)"
+    exit 1
+fi
+
+# Initialiser les compteurs et la liste des échecs
+TOTAL=0
+SUCCESS=0
+FAILED=0
+FAILED_PACKAGES=()
+
+while IFS= read -r package_info; do
+    TOTAL=$((TOTAL + 1))
+    pkg_name=$(echo "$package_info" | jq -r '.name // empty')
+    if install_package "$package_info"; then
+        SUCCESS=$((SUCCESS + 1))
+    else
+        FAILED=$((FAILED + 1))
+        FAILED_PACKAGES+=("$pkg_name")
+    fi
+    echo ""
+done <<< "$PACKAGES"
+
+log_section
+log_info "Résumé de l'installation:"
+log_info "  Total   : $TOTAL"
+log_success "  Réussis : $SUCCESS"
+if [ "$FAILED" -gt 0 ]; then
+    log_error "  Échoués : $FAILED"
+    log_section
+    log_error "Paquets en échec :"
+    for pkg in "${FAILED_PACKAGES[@]}"; do
+        log_error "  ✗ $pkg"
+    done
+fi
+log_section
+
+# ─────────────────────────────────────────────
+# Clonage GitHub (optionnel)
+# ─────────────────────────────────────────────
+
 echo ""
 read -p "Voulez-vous cloner des dépôts GitHub? (o/N): " CLONE_GITHUB
+[[ "$CLONE_GITHUB" =~ ^[Oo]$ ]] && clone_github_repos
 
-if [[ "$CLONE_GITHUB" =~ ^[Oo]$ ]]; then
-    clone_github_repos
-fi
+# Exit code reflète les échecs d'installation
+[ "$FAILED" -gt 0 ] && exit 1
+exit 0

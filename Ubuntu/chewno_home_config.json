@@ -4,206 +4,288 @@
       "name": "brave-browser",
       "description": "Navigateur web Brave",
       "category": "Internet",
-      "install_command": "sudo curl -fsSLo /usr/share/keyrings/brave-browser-archive-keyring.gpg https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg && echo \"deb [signed-by=/usr/share/keyrings/brave-browser-archive-keyring.gpg arch=amd64] https://brave-browser-apt-release.s3.brave.com/ stable main\" | sudo tee /etc/apt/sources.list.d/brave-browser-release.list && sudo apt update && sudo apt install -y brave-browser"
+      "notes": "Dépôt officiel Brave. Utilise /etc/apt/keyrings/ (standard Ubuntu 22.04+) plutôt que /usr/share/keyrings/",
+      "install_command": "sudo apt install -y curl && sudo curl -fsSLo /etc/apt/keyrings/brave-browser-archive-keyring.gpg https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg && echo \"deb [signed-by=/etc/apt/keyrings/brave-browser-archive-keyring.gpg arch=amd64] https://brave-browser-apt-release.s3.brave.com/ stable main\" | sudo tee /etc/apt/sources.list.d/brave-browser-release.list && sudo apt update && sudo apt install -y brave-browser"
     },
     {
       "name": "protonmail-bridge",
-      "description": "ProtonMail Bridge pour clients email",
+      "description": "ProtonMail Bridge pour clients email (Thunderbird, Outlook...)",
       "category": "Internet",
-      "download_url": "https://proton.me/download/bridge/protonmail-bridge_3.13.0-1_amd64.deb"
+      "notes": "Snap community-maintained (proton.me vérifié). Nécessite snap connect post-install pour accès au keychain",
+      "install_command": "sudo snap install protonmail-bridge && sudo snap connect protonmail-bridge:password-manager-service"
     },
     {
       "name": "protonvpn",
-      "description": "ProtonVPN - Client VPN",
+      "description": "ProtonVPN - Client VPN avec GUI GNOME",
       "category": "Internet",
-      "install_command": "wget -qO - https://repo.protonvpn.net/debian/dists/stable/main/binary-all/protonvpn-stable-release_1.0.3-3_all.deb -O /tmp/protonvpn-release.deb && sudo dpkg -i /tmp/protonvpn-release.deb && sudo apt update && sudo apt install -y protonvpn"
+      "notes": "Version 1.0.8 : version stable officielle (la 1.0.3 du JSON précédent est obsolète). URL officielle : https://protonvpn.com/support/official-linux-vpn-ubuntu",
+      "install_command": "wget -q https://repo.protonvpn.com/debian/dists/stable/main/binary-all/protonvpn-stable-release_1.0.8_all.deb -O /tmp/protonvpn-release.deb && sudo dpkg -i /tmp/protonvpn-release.deb && sudo apt update && sudo apt install -y proton-vpn-gnome-desktop"
     },
     {
       "name": "proton-authenticator",
-      "description": "ProtonAuthenticator - Application d'authentification à deux facteurs",
+      "description": "Proton Authenticator - Application d'authentification à deux facteurs",
       "category": "Security",
-      "download_url": "https://proton.me/download/authenticator/proton-authenticator_1.0.0_amd64.deb"
+      "notes": "Pas de dépôt apt/snap officiel. .deb disponible sur proton.me/authenticator/download",
+      "install_command": "wget -q 'https://proton.me/download/authenticator/proton-authenticator_latest_amd64.deb' -O /tmp/proton-authenticator.deb && sudo dpkg -i /tmp/proton-authenticator.deb || sudo apt-get install -f -y"
     },
     {
       "name": "proton-pass",
-      "description": "ProtonPass - Gestionnaire de mots de passe",
+      "description": "Proton Pass - Gestionnaire de mots de passe chiffré",
       "category": "Security",
-      "download_url": "https://proton.me/download/pass/proton-pass_1.0.0_amd64.deb"
+      "notes": "Snap community-maintained (proton.me vérifié). Alternative : .deb sur proton.me/pass/download",
+      "install_command": "sudo snap install proton-pass"
     },
     {
       "name": "texmaker",
-      "category": "Developping",
-      "description": "Éditeur LaTeX"
+      "description": "Texmaker - Éditeur LaTeX complet avec prévisualisation",
+      "category": "Developing",
+      "notes": "Dans les dépôts Ubuntu officiels. texlive-full optionnel (~5 Go), peut être remplacé par texlive-latex-extra si l'espace disque est limité",
+      "install_command": "sudo apt install -y texmaker texlive-latex-extra texlive-fonts-recommended"
     },
     {
       "name": "ferdium",
-      "description": "Client de messagerie tout-en-un",
+      "description": "Ferdium - Client de messagerie tout-en-un (Slack, Teams, Gmail...)",
       "category": "Communication",
-      "install_command": "LATEST_URL=$(curl -s https://api.github.com/repos/ferdium/ferdium-app/releases/latest | grep 'browser_download_url.*AppImage' | grep 'linux-x64' | cut -d '\"' -f 4) && wget -q \"$LATEST_URL\" -O /tmp/ferdium.AppImage && chmod +x /tmp/ferdium.AppImage && sudo mv /tmp/ferdium.AppImage /usr/local/bin/ferdium || mv /tmp/ferdium.AppImage $HOME/.local/bin/ferdium"
+      "notes": "Snap community-maintained (ferdium.org vérifié, latest/stable oct 2025). Nécessite snap connect pour caméra et micro",
+      "install_command": "sudo snap install ferdium && sudo snap connect ferdium:camera && sudo snap connect ferdium:audio-record"
     },
     {
       "name": "superproductivity",
-      "description": "Application de productivité",
+      "description": "Super Productivity - Gestion de tâches, time tracking, Pomodoro",
       "category": "Productivity",
-      "install_command": "LATEST_URL=$(curl -s https://api.github.com/repos/johannesjo/super-productivity/releases/latest | grep 'browser_download_url.*AppImage' | grep 'linux-x86_64' | cut -d '\"' -f 4) && wget -q \"$LATEST_URL\" -O /tmp/superproductivity.AppImage && chmod +x /tmp/superproductivity.AppImage && sudo mv /tmp/superproductivity.AppImage /usr/local/bin/superproductivity || mv /tmp/superproductivity.AppImage $HOME/.local/bin/superproductivity"
+      "notes": "Snap community-maintained (super-productivity.com vérifié, latest/stable nov 2025)",
+      "install_command": "sudo snap install superproductivity"
     },
     {
       "name": "gitkraken",
-      "description": "Client Git GUI",
-      "category": "Developping",
-      "download_url": "https://release.gitkraken.com/linux/gitkraken-amd64.deb"
+      "description": "GitKraken - Client Git GUI visuel",
+      "category": "Developing",
+      "notes": "Snap officiel GitKraken, nécessite --classic pour accès système de fichiers complet",
+      "install_command": "sudo snap install gitkraken --classic"
     },
     {
       "name": "git",
-      "category": "Developping",
-      "description": "Système de contrôle de version distribué"
+      "description": "Git - Système de contrôle de version distribué",
+      "category": "Developing",
+      "notes": "Dans les dépôts Ubuntu officiels",
+      "install_command": "sudo apt install -y git git-lfs"
     },
     {
       "name": "qt6",
-      "description": "Qt 6 - Framework de développement (installateur offline)",
-      "category": "Developping",
-      "install_command": "QT_VERSION=$(curl -s https://download.qt.io/official_releases/qt/ | grep -oP 'href=\\\"\\K[0-9]+\\\\.[0-9]+\\\\.[0-9]+' | sort -V | tail -1) && QT_MAJOR=$(echo $QT_VERSION | cut -d. -f1) && QT_MINOR=$(echo $QT_VERSION | cut -d. -f2) && INSTALLER_URL=\\\"https://download.qt.io/official_releases/qt/$QT_MAJOR.$QT_MINOR/$QT_VERSION/single/qt-opensource-linux-x64-$QT_VERSION.run\\\" && echo \\\"Téléchargement de Qt $QT_VERSION offline installer...\\\" && wget --progress=bar:force:noscroll \\\"$INSTALLER_URL\\\" -O /tmp/qt-opensource-linux-x64-$QT_VERSION.run && chmod +x /tmp/qt-opensource-linux-x64-$QT_VERSION.run && echo \\\"✓ Qt 6 offline installer téléchargé: /tmp/qt-opensource-linux-x64-$QT_VERSION.run\\\" && echo \\\"Pour installer, exécutez: /tmp/qt-opensource-linux-x64-$QT_VERSION.run\\\""
+      "description": "Qt 6 - Framework de développement C++ (bibliothèques via apt)",
+      "category": "Developing",
+      "notes": "Paquets Qt 6 dans les dépôts Ubuntu 22.04+. Pour l'installateur officiel Qt avec Qt Creator, voir https://www.qt.io/download",
+      "install_command": "sudo apt install -y qt6-base-dev qt6-tools-dev qt6-tools-dev-tools qt6-l10n-tools libqt6widgets6 libqt6sql6 libqt6network6 qmake6 cmake"
     },
     {
       "name": "cursor",
-      "description": "Cursor AI - Éditeur de code IA",
-      "category": "Developping",
-      "download_url": "https://downloader.cursor.sh/linux/appImage/x64"
+      "description": "Cursor - Éditeur de code IA (fork VS Code) - pas de paquet apt/snap disponible",
+      "category": "Developing",
+      "notes": "AppImage officiel depuis downloader.cursor.sh. Pas de snap ou deb officiel disponible",
+      "install_command": "wget -q 'https://downloader.cursor.sh/linux/appImage/x64' -O /tmp/cursor.AppImage && chmod +x /tmp/cursor.AppImage && sudo mv /tmp/cursor.AppImage /usr/local/bin/cursor && mkdir -p ~/.local/share/applications && printf '[Desktop Entry]\\nName=Cursor\\nExec=/usr/local/bin/cursor\\nIcon=cursor\\nType=Application\\nCategories=Development;' > ~/.local/share/applications/cursor.desktop"
     },
     {
       "name": "dbeaver-ce",
-      "category": "Developping",
-      "description": "DBeaver - Client de base de données universel"
+      "description": "DBeaver Community - Client universel de bases de données",
+      "category": "Developing",
+      "notes": "Snap officiel DBeaver, mis à jour régulièrement",
+      "install_command": "sudo snap install dbeaver-ce"
+    },
+    {
+      "name": "vscode",
+      "description": "Visual Studio Code - Éditeur de code Microsoft",
+      "category": "Developing",
+      "notes": "Snap officiel Microsoft, nécessite --classic. Alternative : dépôt apt Microsoft sur code.visualstudio.com",
+      "install_command": "sudo snap install code --classic"
     },
     {
       "name": "obs-studio",
+      "description": "OBS Studio - Streaming et enregistrement vidéo",
       "category": "Communication",
-      "description": "Logiciel de streaming et d'enregistrement vidéo"
+      "notes": "PPA officiel OBS Project. Méthode recommandée par obsproject.com pour Ubuntu. Fournit les dernières versions (32.x sur Ubuntu 24.04)",
+      "install_command": "sudo add-apt-repository -y ppa:obsproject/obs-studio && sudo apt update && sudo apt install -y obs-studio"
     },
     {
       "name": "steam",
+      "description": "Steam - Plateforme de jeux Valve",
       "category": "Gaming",
-      "description": "Plateforme de jeux Steam"
+      "notes": "steam-installer dans les dépôts Ubuntu multiverse. Active i386 pour les jeux 32 bits",
+      "install_command": "sudo dpkg --add-architecture i386 && sudo apt update && sudo apt install -y steam-installer"
     },
     {
       "name": "lutris",
+      "description": "Lutris - Gestionnaire de jeux open source (Wine, GOG, Epic...)",
       "category": "Gaming",
-      "description": "Gestionnaire de jeux open source"
+      "notes": "PPA officiel Lutris, maintenu activement",
+      "install_command": "sudo add-apt-repository -y ppa:lutris-team/lutris && sudo apt update && sudo apt install -y lutris"
+    },
+    {
+      "name": "heroic-games-launcher",
+      "description": "Heroic Games Launcher - Client GOG et Epic Games Store",
+      "category": "Gaming",
+      "notes": "Pas de snap/apt officiel. .deb depuis GitHub releases (Heroic-Games-Launcher)",
+      "install_command": "LATEST_URL=$(curl -s https://api.github.com/repos/Heroic-Games-Launcher/HeroicGamesLauncher/releases/latest | grep 'browser_download_url.*amd64.deb' | cut -d '\"' -f 4) && wget -q \"$LATEST_URL\" -O /tmp/heroic.deb && sudo dpkg -i /tmp/heroic.deb || sudo apt-get install -f -y"
     },
     {
       "name": "qsync-client",
-      "description": "QSync - Client de synchronisation QNAP",
-      "category": "Internet",
-      "download_url": "https://download.qnap.com/Storage/Utility/QNAPQsyncClientUbuntux64-5.0.0.0.deb"
+      "description": "Qsync Client - Synchronisation NAS QNAP",
+      "category": "Storage",
+      "notes": "Pas de snap/apt officiel. Vérifier la version actuelle sur download.qnap.com si besoin d'une version plus récente",
+      "install_command": "wget -q 'https://download.qnap.com/Storage/Utility/QNAPQsyncClientUbuntux64-5.0.0.0.deb' -O /tmp/qsync-client.deb && sudo dpkg -i /tmp/qsync-client.deb || sudo apt-get install -f -y"
     },
     {
       "name": "discord",
+      "description": "Discord - Communication vocale, vidéo et textuelle",
       "category": "Communication",
-      "description": "Application de chat et communication"
+      "notes": "⚠️ Le snap discord est maintenu par Snapcrafters (non-officiel Discord) et génère des erreurs apparmor. Utilisation du .deb officiel discord.com recommandée",
+      "install_command": "wget -q 'https://discord.com/api/download?platform=linux&format=deb' -O /tmp/discord.deb && sudo dpkg -i /tmp/discord.deb || sudo apt-get install -f -y"
     },
     {
       "name": "figma-linux",
-      "description": "Figma - Outil de design",
-      "category": "Developping",
+      "description": "Figma Linux - Outil de design collaboratif (client non-officiel)",
+      "category": "Developing",
+      "notes": "Pas de snap/apt officiel. Client non-officiel, .deb depuis GitHub releases (Figma-Linux/figma-linux)",
       "install_command": "LATEST_URL=$(curl -s https://api.github.com/repos/Figma-Linux/figma-linux/releases/latest | grep 'browser_download_url.*amd64.deb' | cut -d '\"' -f 4) && wget -q \"$LATEST_URL\" -O /tmp/figma-linux.deb && sudo dpkg -i /tmp/figma-linux.deb || sudo apt-get install -f -y"
     },
     {
       "name": "gimp",
+      "description": "GIMP - Éditeur d'images GNU",
       "category": "Multimedia",
-      "description": "Éditeur d'images GNU" 
+      "notes": "Snap officiel GIMP (version stable à jour)",
+      "install_command": "sudo snap install gimp"
+    },
+    {
+      "name": "inkscape",
+      "description": "Inkscape - Éditeur de graphiques vectoriels SVG",
+      "category": "Multimedia",
+      "notes": "Snap officiel Inkscape",
+      "install_command": "sudo snap install inkscape"
     },
     {
       "name": "musescore",
+      "description": "MuseScore - Éditeur de partitions musicales",
       "category": "Multimedia",
-      "description": "Éditeur de partitions musicales"
+      "notes": "Snap officiel MuseScore",
+      "install_command": "sudo snap install musescore"
     },
     {
       "name": "sublime-text",
-      "description": "Éditeur de texte Sublime Text",
-      "category": "Developping",
-      "install_command": "wget -qO - https://download.sublimetext.com/sublimehq-pub.gpg | sudo apt-key add - && echo 'deb https://download.sublimetext.com/ apt/stable/' | sudo tee /etc/apt/sources.list.d/sublime-text.list && sudo apt update && sudo apt install -y sublime-text"
+      "description": "Sublime Text - Éditeur de texte rapide et léger",
+      "category": "Developing",
+      "notes": "Dépôt apt officiel Sublime HQ. Utilise gpg --dearmor (méthode moderne, apt-key est déprécié)",
+      "install_command": "wget -qO - https://download.sublimetext.com/sublimehq-pub.gpg | gpg --dearmor | sudo tee /etc/apt/keyrings/sublimetext.gpg > /dev/null && echo 'deb [signed-by=/etc/apt/keyrings/sublimetext.gpg] https://download.sublimetext.com/ apt/stable/' | sudo tee /etc/apt/sources.list.d/sublime-text.list && sudo apt update && sudo apt install -y sublime-text"
     },
     {
       "name": "vlc",
-      "description": "Lecteur multimédia VLC",
-      "category": "Multimedia"
+      "description": "VLC - Lecteur multimédia universel",
+      "category": "Multimedia",
+      "notes": "Snap officiel VideoLAN",
+      "install_command": "sudo snap install vlc"
     },
     {
       "name": "streamdeck-ui",
-      "description": "Elgato Stream Deck - Interface de contrôle pour Linux",
-      "category": "Setup"
+      "description": "Stream Deck UI - Interface de contrôle Elgato pour Linux",
+      "category": "Setup",
+      "notes": "Pas de snap/apt officiel. Installation via pip3 + règle udev pour accès USB",
+      "install_command": "sudo apt install -y python3-pip libhidapi-libusb0 && pip3 install streamdeck-ui --break-system-packages && echo 'SUBSYSTEM==\"usb\", ATTRS{idVendor}==\"0fd9\", TAG+=\"uaccess\"' | sudo tee /etc/udev/rules.d/70-streamdeck.rules && sudo udevadm control --reload-rules && sudo udevadm trigger"
     },
     {
       "name": "piper",
-      "description": "Configuration des souris gaming (support Roccat et autres)",
-      "install_command": "sudo add-apt-repository -y ppa:libratbag-piper/piper-libratbag-git && sudo apt update && sudo apt install -y piper",
-      "category": "Driver"
+      "description": "Piper - Configuration graphique des souris gaming (via libratbag)",
+      "category": "Driver",
+      "notes": "Dans les dépôts Ubuntu officiels",
+      "install_command": "sudo apt install -y piper"
     },
     {
       "name": "roccat-tools",
-      "description": "Outils de configuration pour périphériques Roccat",
-      "install_command": "flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo && flatpak install -y flathub net.sourceforge.roccat.roccat-tools",
-      "category": "Driver"
+      "description": "Roccat Tools - Configuration des périphériques Roccat",
+      "category": "Driver",
+      "notes": "Pas de snap/apt. Flatpak Flathub (seule option disponible)",
+      "install_command": "sudo apt install -y flatpak && flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo && flatpak install -y flathub net.sourceforge.roccat"
     },
     {
       "name": "pulseaudio",
-      "description": "Serveur audio PulseAudio (utile pour périphériques Turtle Beach et autres casques)",
-      "category": "Driver"
+      "description": "PulseAudio - Serveur audio (casques USB, Turtle Beach...)",
+      "category": "Driver",
+      "notes": "Dans les dépôts Ubuntu officiels. Note: Ubuntu 22.04+ utilise PipeWire par défaut, PulseAudio reste compatible",
+      "install_command": "sudo apt install -y pulseaudio pulseaudio-utils pavumeter pavucontrol"
     },
     {
       "name": "pavucontrol",
-      "description": "Contrôleur audio PulseAudio (configuration des périphériques audio)",
-      "category": "Driver"
+      "description": "PulseAudio Volume Control - Contrôle graphique des périphériques audio",
+      "category": "Driver",
+      "notes": "Dans les dépôts Ubuntu officiels",
+      "install_command": "sudo apt install -y pavucontrol"
     },
     {
-      "name": "antimicro",
-      "description": "Mappage de manettes et périphériques de jeu (compatible Azeron, Victrix)",
+      "name": "antimicrox",
+      "description": "AntiMicroX - Mappage de manettes (Azeron, Victrix, Xbox, PS) - v3.5.1",
       "category": "Driver",
-      "install_command": "sudo add-apt-repository -y ppa:ryochan7/antimicro && sudo apt update && sudo apt install -y antimicro"
+      "notes": "⚠️ Pas de snap disponible (demande jamais approuvée). Installation via .deb GitHub releases (v3.5.1, oct 2025, supporte Ubuntu 24.04)",
+      "install_command": "LATEST_URL=$(curl -s https://api.github.com/repos/AntiMicroX/antimicrox/releases/latest | grep 'browser_download_url.*Ubuntu.*24.*amd64\\.deb' | cut -d '\"' -f 4) && if [ -z \"$LATEST_URL\" ]; then LATEST_URL=$(curl -s https://api.github.com/repos/AntiMicroX/antimicrox/releases/latest | grep 'browser_download_url.*amd64\\.deb' | head -1 | cut -d '\"' -f 4); fi && wget -q \"$LATEST_URL\" -O /tmp/antimicrox.deb && sudo dpkg -i /tmp/antimicrox.deb || sudo apt-get install -f -y"
     },
     {
       "name": "joystick",
-      "description": "Outils de test et configuration pour manettes de jeu",
-      "category": "Driver"
+      "description": "Outils de test et calibrage des manettes de jeu",
+      "category": "Driver",
+      "notes": "Dans les dépôts Ubuntu officiels",
+      "install_command": "sudo apt install -y joystick jstest-gtk evtest"
     },
     {
       "name": "xone",
-      "description": "Pilote Linux pour Xbox One/Series X|S (support Victrix)",
+      "description": "xone - Pilote Linux pour manettes Xbox One/Series X|S (câble et dongle)",
       "category": "Driver",
-      "install_command": "sudo apt update && sudo apt install -y dkms curl cabextract && cd /tmp && git clone https://github.com/medusalix/xone.git && cd xone && sudo ./install.sh --release && sudo xone-get-firmware.sh && cd -"
+      "notes": "Module noyau DKMS, pas de paquet apt/snap. Installation depuis les sources GitHub (medusalix/xone)",
+      "install_command": "sudo apt update && sudo apt install -y dkms curl cabextract linux-headers-$(uname -r) git && cd /tmp && git clone https://github.com/medusalix/xone.git && cd xone && sudo ./install.sh --release && sudo xone-get-firmware.sh; cd -"
     },
     {
       "name": "xpadneo",
-      "description": "Pilote avancé pour Xbox One S (Bluetooth) et Xbox Wireless Controller",
+      "description": "xpadneo - Pilote avancé Xbox One S / Xbox Wireless Controller via Bluetooth",
       "category": "Driver",
-      "install_command": "sudo apt update && sudo apt install -y dkms linux-headers-$(uname -r) && cd /tmp && git clone https://github.com/atar-axis/xpadneo.git && cd xpadneo && sudo ./install.sh && cd -"
+      "notes": "Module noyau DKMS, pas de paquet apt/snap. Installation depuis les sources GitHub (atar-axis/xpadneo)",
+      "install_command": "sudo apt update && sudo apt install -y dkms linux-headers-$(uname -r) git && cd /tmp && git clone https://github.com/atar-axis/xpadneo.git && cd xpadneo && sudo ./install.sh; cd -"
     },
     {
       "name": "sc-controller",
-      "description": "Configuration avancée de manettes (alternative avec support étendu)",
-      "category": "Driver"
+      "description": "SC Controller - Configuration avancée de manettes (Steam Controller, Xbox, PS)",
+      "category": "Driver",
+      "notes": "Disponible dans les dépôts Ubuntu universe",
+      "install_command": "sudo apt install -y sc-controller"
     },
     {
       "name": "nvidia-drivers",
-      "description": "Drivers NVIDIA (détection automatique et installation de la version recommandée)",
+      "description": "Drivers NVIDIA - Détection automatique et installation de la version recommandée",
       "category": "Driver",
-      "install_command": "if lspci | grep -i nvidia > /dev/null; then sudo apt update && sudo apt install -y ubuntu-drivers-common && sudo ubuntu-drivers install; else echo 'Aucune carte graphique NVIDIA détectée, installation ignorée'; fi"
+      "notes": "ubuntu-drivers détecte automatiquement le meilleur driver. Fallback sur nvidia-driver-550 si aucune recommandation",
+      "install_command": "if lspci | grep -i nvidia > /dev/null 2>&1; then sudo apt update && sudo apt install -y ubuntu-drivers-common && RECOMMENDED=$(ubuntu-drivers devices 2>/dev/null | grep recommended | awk '{print $3}') && sudo apt install -y ${RECOMMENDED:-nvidia-driver-550} && echo \"Driver installé : ${RECOMMENDED:-nvidia-driver-550}\"; else echo 'Aucune carte NVIDIA détectée, installation ignorée.'; fi"
     },
     {
       "name": "edrawmind",
-      "description": "EdrawMind - Outil de mind mapping",
+      "description": "EdrawMind - Outil de mind mapping et brainstorming",
       "category": "Productivity",
-      "install_command": "DOWNLOAD_URL=$(curl -fsSL https://www.edrawmind.com/download-desktop.html | grep -oP 'https://[^\"']*edrawmind[^\"']*\\.deb' | head -n1); if [ -z \"$DOWNLOAD_URL\" ]; then echo 'Impossible de trouver le lien de téléchargement EdrawMind'; exit 1; fi; echo \"Téléchargement d'EdrawMind depuis $DOWNLOAD_URL\"; wget -q \"$DOWNLOAD_URL\" -O /tmp/edrawmind_latest.deb && sudo dpkg -i /tmp/edrawmind_latest.deb || sudo apt-get install -f -y"
+      "notes": "Pas de snap/apt officiel. URL directe EdrawSoft (.deb Linux)",
+      "install_command": "wget -q 'https://www.edrawsoft.com/downloads/edrawmind-linux-x64.deb' -O /tmp/edrawmind.deb && sudo dpkg -i /tmp/edrawmind.deb || sudo apt-get install -f -y"
+    },
+    {
+      "name": "obsidian",
+      "description": "Obsidian - Prise de notes en Markdown avec graphe de liens",
+      "category": "Productivity",
+      "notes": "Snap officiel Obsidian, nécessite --classic pour accès système de fichiers",
+      "install_command": "sudo snap install obsidian --classic"
     },
     {
       "name": "quiterss",
-      "description": "Lecteur de flux RSS",
-      "category": "Multimedia"
+      "description": "QuiteRSS - Lecteur de flux RSS/Atom hors-ligne",
+      "category": "Multimedia",
+      "notes": "Dans les dépôts Ubuntu officiels",
+      "install_command": "sudo apt install -y quiterss"
     },
     {
       "name": "kasts",
-      "description": "Lecteur de podcasts",
-      "category": "Multimedia"
+      "description": "Kasts - Lecteur de podcasts KDE",
+      "category": "Multimedia",
+      "notes": "Snap officiel KDE",
+      "install_command": "sudo snap install kasts"
     }
   ]
 }
